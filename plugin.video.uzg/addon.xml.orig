@@ -1,0 +1,19 @@
+<addon id="plugin.video.uzg" name="Uitzendinggemist(NPO)" provider-name="Bas Magré (Opvolger)" version="1.0.0">
+  <requires>
+    <import addon="xbmc.python" version="2.0" />
+    <import addon="script.module.xbmcswift2" version="2.4.0" />
+  </requires>
+  <extension library="addon.py" point="xbmc.python.pluginsource">
+    <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <language>nl</language>
+    <platform>all</platform>
+    <source>https://bitbucket.org/Opvolger/xbmc.addon.uzg/</source>
+    <email>Opvolger@gmail.com</email>
+    <summary lang="en">Uitzendinggemist(NPO) - Watch free videos from Uitzendinggemist</summary>
+    <summary lang="nl">Uitzendinggemist(NPO) - Bekijk de gratis aangeboden Uitzendinggemist videos</summary>
+    <description lang="en">Dutch Uitzendinggemist(NPO) videos NED1 / NED2 / NED3</description>
+    <description lang="nl">Uitzendinggemist(NPO), videos van NED1 / NED2 / NED3</description>
+  </extension>
+</addon>

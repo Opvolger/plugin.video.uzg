@@ -1,0 +1,6 @@
+﻿Version 1.0.1
+* XBMC 13 support
+* changelog.txt was wrong
+
+Version 1.0
+* Initial version
