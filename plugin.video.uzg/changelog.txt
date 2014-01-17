@@ -1,4 +1,7 @@
-﻿Version 1.0.1
+﻿Version 1.0.2
+* name plugin is now oke.
+
+Version 1.0.1
 * XBMC 13 support
 * changelog.txt was wrong
 
