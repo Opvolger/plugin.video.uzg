@@ -1,4 +1,7 @@
-﻿Version 1.0.2
+﻿﻿Version 1.0.3
+* icon changed
+
+Version 1.0.2
 * name plugin is now oke.
 
 Version 1.0.1
