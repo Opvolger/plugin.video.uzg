@@ -1,3 +1,9 @@
+﻿﻿﻿﻿Version 1.0.5
+* little fixxen for official repo requirements
+
+Version 1.0.4
+* Description changed
+
 ﻿﻿Version 1.0.3
 * icon changed
 

@@ -6,18 +6,16 @@
 
     :copyright: (c) 2012 by Jonathan Beluch (Documentary.net xbmc addon)    
     :license: GPLv3, see LICENSE.txt for more details.
-    
-    based on: https://github.com/jbeluch/plugin.video.documentary.net
 
-    Uitzendinggemist(NPO) = Made/(changed Jonathans code) by Bas Magre (Opvolger)
+    Uitzendinggemist (NPO) = Made by Bas Magre (Opvolger)    
+    based on: https://github.com/jbeluch/plugin.video.documentary.net
 
 '''
 import urllib2,re
 from operator import itemgetter, attrgetter
 from datetime import datetime
 import time
-try:    import simplejson as json
-except: import json
+import json
 
 #
 # Item class
