@@ -1,24 +1,24 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿Version 1.0.11
-* mp4 lower resolution (for Rpi or slow connection) option
+﻿﻿﻿﻿Version 1.1.0
+* Subtitle added
 
-Version 1.0.9
+﻿﻿﻿Version 1.0.6
+* New API NPO
+
+﻿﻿﻿Version 1.0.5
 * little fixxen for official repo requirements
 
-Version 1.0.8
-* little fix
+Version 1.0.4
+* Description changed
 
-﻿Version 1.0.7
+﻿﻿Version 1.0.3
+* icon changed
+
+Version 1.0.2
 * name plugin is now oke.
 
-﻿Version 1.0.6
+Version 1.0.1
 * XBMC 13 support
-
-﻿Version 1.0.5
-* Date sorting
-
-﻿Version 1.0.4
-* Rename to rtlxl
-* Upload to https://bitbucket.org/Opvolger/xbmc.addon.rtlxl
+* changelog.txt was wrong
 
 Version 1.0
 * Initial version
