@@ -1,19 +1,22 @@
-﻿﻿﻿﻿﻿﻿﻿Version 1.2.0
+Version 1.3.0
+* Added search functionality
+
+Version 1.2.0
 * Refactor code.
 
 Version 1.1.0
 * Subtitle added
 
-﻿﻿﻿Version 1.0.6
+Version 1.0.6
 * New API NPO
 
-﻿﻿﻿Version 1.0.5
-* little fixxen for official repo requirements
+Version 1.0.5
+* little fixes for official repo requirements
 
 Version 1.0.4
 * Description changed
 
-﻿﻿Version 1.0.3
+Version 1.0.3
 * icon changed
 
 Version 1.0.2
