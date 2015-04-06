@@ -47,7 +47,7 @@ def zoek():
         'label': item['label'],
         'thumbnail': item['thumbnail'],
     } for item in uzg.get_overzicht()]
-    items = [e for e in items if d in e['label']]
+    items = [e for e in items if d.lower() in e['label'].lower()]
     return items
 
 
