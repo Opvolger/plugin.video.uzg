@@ -11,7 +11,6 @@
 
 '''
 import urllib2 ,re ,time ,json
-import xbmc
 from datetime import datetime
 
 class Uzg:
@@ -75,11 +74,9 @@ class Uzg:
             token = re.search(r'token\":"(.*?)"', data).group(1)
             ##video lokatie aanvragen
             data = self.__get_data_from_url('http://ida.omroep.nl/app.php/'+whatson_id+'?adaptive&adaptive=yes&part=1&token='+token)
-	    xbmc.log("plugin.video.uzg:: data %s" % data)
             json_data = json.loads(data)
             ##video file terug geven vanaf json antwoord
             streamdataurl = json_data['items'][0][0]['url']
-	    xbmc.log("plugin.video.uzg:: istreamdataurl %s" % streamdataurl)
             streamurl = str(streamdataurl.split("?")[0]) + '?extension=m3u8'
             data = self.__get_data_from_url(streamurl)
             json_data = json.loads(data)
