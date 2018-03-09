@@ -20,6 +20,7 @@ class Uzg:
         def __init__( self):
             self.overzichtcache = 'leeg'
             self.items = 'leeg'            
+            self.show_time_in_label = False
 
         def __overzicht(self):        
             req = urllib2.Request('http://apps-api.uitzendinggemist.nl/series.json')
@@ -50,7 +51,7 @@ class Uzg:
                     urlcover = aflevering['stills'][0]['url']
                 uzgitem = { 'label': aflevering['name']
                             , 'date': self.__stringnaardatumnaarstring(datetime.fromtimestamp(int(aflevering['broadcasted_at'])).strftime('%Y-%m-%dT%H:%M:%S'))
-                            , 'TimeStamp': datetime.fromtimestamp(int(aflevering['broadcasted_at'])).strftime('%Y-%m-%dT%H:%M:%S')
+                            , 'TimeStamp': datetime.fromtimestamp(int(aflevering['broadcasted_at'])).strftime('%Y-%m-%dT%H:%M')
                             , 'thumbnail': urlcover
                             , 'serienaam': json_data['name']
                             , 'whatson_id': aflevering['whatson_id']}
@@ -93,6 +94,16 @@ class Uzg:
         def get_items(self, nebo_id):
             if (self.items == 'leeg'):
                 self.__items(nebo_id)
+
+            self.show_time_in_label = False
+
+            for item in self.items:
+                for ref in self.items:
+                    if (item['date'] == ref['date'] and item['whatson_id'] != ref['whatson_id']):
+                        # Er zijn meerdere afleveringen op dezelfde
+                        # dag: toon de tijd in het label.
+                        self.show_time_in_label = True
+
             return [self.__build_item(i) for i in self.items]
     
         def __build_item(self, post):    
@@ -102,8 +113,11 @@ class Uzg:
             else:
                 titelnaam = post['label']
 
+            if (self.show_time_in_label):
+                titelnaam += ' (' + post['TimeStamp'].split('T')[1] + ')'
+
             item = {
-                'label': '(' + post['TimeStamp'].split('T')[1] + ') - ' + titelnaam,
+                'label': titelnaam,
                 'date': post['date'],
                 'thumbnail': post['thumbnail'],
                 'whatson_id': post['whatson_id'],
