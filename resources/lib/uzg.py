@@ -30,7 +30,7 @@ class Uzg:
             json_data = json.loads(link)
             uzgitemlist = list()
             for serie in json_data:
-                uzgitem = { 'label': serie['name'], 'nebo_id': serie['nebo_id'], 'thumbnail': serie['image'] }
+                uzgitem = { 'label': serie['name'], 'nebo_id': serie['nebo_id'], 'thumbnail': serie['image'], 'plot': serie['description'] }
                 uzgitemlist.append(uzgitem)                
             self.overzichtcache = sorted(uzgitemlist, key=lambda x: x['label'], reverse=False)
             
@@ -53,6 +53,7 @@ class Uzg:
                             , 'TimeStamp': datetime.fromtimestamp(int(aflevering['broadcasted_at'])).strftime('%Y-%m-%dT%H:%M:%S')
                             , 'thumbnail': urlcover
                             , 'serienaam': json_data['name']
+                            , 'plot': aflevering['description']
                             , 'whatson_id': aflevering['whatson_id']}
                 uzgitemlist.append(uzgitem)
             self.items = uzgitemlist
@@ -105,6 +106,7 @@ class Uzg:
             item = {
                 'label': '(' + post['TimeStamp'].split('T')[1] + ') - ' + titelnaam,
                 'date': post['date'],
+                'plot': post['plot'],
                 'thumbnail': post['thumbnail'],
                 'whatson_id': post['whatson_id'],
             }
