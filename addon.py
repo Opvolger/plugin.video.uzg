@@ -30,6 +30,7 @@ def index():
         'thumbnail': item['thumbnail'],
         'info': {
             'plot': item['plot'],
+            'studio': item['studio'],
         }
     } for item in uzg.get_overzicht()]    
     return items
@@ -67,6 +68,7 @@ def show_items(opgehaaldeitemsclass):
         'info': {
                 'date': item['date'],
                 'plot': item['plot'],
+                'studio': item['studio'],
         },
     } for item in opgehaaldeitemsclass]
     return plugin.finish(items,sort_methods=[SortMethod.DATE,SortMethod.LABEL])
