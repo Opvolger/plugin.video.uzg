@@ -20,14 +20,6 @@ import re ,time ,json
 from datetime import datetime
 
 class Uzg:
-        #
-        # Init
-        #
-        def __init__( self):
-            self.overzichtcache = 'leeg'
-            self.items = 'leeg'            
-            self.show_time_in_label = False
-
         def __overzicht(self):        
             req = Request('http://apps-api.uitzendinggemist.nl/series.json')
             req.add_header('User-Agent', 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0')
@@ -41,11 +33,12 @@ class Uzg:
                     'label': serie['name'],
                     'nebo_id': serie['nebo_id'],
                     'thumbnail': serie['image'],
+                    'genres': serie['genres'],
                     'plot': serie['description'],
                     'studio': ', '.join(serie['broadcasters']),
                 }
                 uzgitemlist.append(uzgitem)                
-            self.overzichtcache = sorted(uzgitemlist, key=lambda x: x['label'], reverse=False)
+            return sorted(uzgitemlist, key=lambda x: x['label'], reverse=False)
             
         def __items(self, nebo_id):
             req = Request('http://apps-api.uitzendinggemist.nl/series/'+nebo_id+'.json')
@@ -57,20 +50,25 @@ class Uzg:
             uzgitemlist = list()
             for aflevering in json_data['episodes']:
                 urlcover = ''
-                if not aflevering['stills']:
-                    urlcover = ''
-                else:
+                if aflevering['stills']:
                     urlcover = aflevering['stills'][0]['url']
                 uzgitem = { 'label': aflevering['name']
-                            , 'date': self.__stringnaardatumnaarstring(datetime.fromtimestamp(int(aflevering['broadcasted_at'])).strftime('%Y-%m-%dT%H:%M:%S'))
+                            , 'count': int(aflevering['broadcasted_at'])
+                            , 'aired': datetime.fromtimestamp(int(aflevering['broadcasted_at'])).strftime('%Y-%m-%d')
+                            , 'premiered': datetime.fromtimestamp(int(aflevering['broadcasted_at'])).strftime('%Y-%m-%d')
+                            , 'date': datetime.fromtimestamp(int(aflevering['broadcasted_at'])).strftime('%d-%m-%Y')
+                            , 'year': datetime.fromtimestamp(int(aflevering['broadcasted_at'])).strftime('%Y')
                             , 'TimeStamp': datetime.fromtimestamp(int(aflevering['broadcasted_at'])).strftime('%Y-%m-%dT%H:%M')
                             , 'thumbnail': urlcover
+                            , 'genres': aflevering['genres']
+                            , 'duration': aflevering['duration']
                             , 'serienaam': json_data['name']
                             , 'plot': aflevering['description']
                             , 'studio': ', '.join(aflevering['broadcasters'])
                             , 'whatson_id': aflevering['whatson_id']}
                 uzgitemlist.append(uzgitem)
-            self.items = uzgitemlist
+                #print(uzgitem['date'])
+            return uzgitemlist
 
         def __get_data_from_url(self, url):
             req = Request(url)
@@ -99,45 +97,34 @@ class Uzg:
             return url_play
             
         def get_overzicht(self):
-            self.items = 'leeg' ##items weer leeg maken
-            if (self.overzichtcache == 'leeg'):
-                self.__overzicht()
-            return self.overzichtcache            
+            return self.__overzicht()         
 
 
         def get_items(self, nebo_id):
-            if (self.items == 'leeg'):
-                self.__items(nebo_id)
-
-            self.show_time_in_label = False
-
-            for item in self.items:
-                for ref in self.items:
+            items = self.__items(nebo_id)
+            show_time_in_label = False
+            
+            for item in items:
+                for ref in items:
                     if (item['date'] == ref['date'] and item['whatson_id'] != ref['whatson_id']):
                         # Er zijn meerdere afleveringen op dezelfde
                         # dag: toon de tijd in het label.
-                        self.show_time_in_label = True
+                        show_time_in_label = True
 
-            return [self.__build_item(i) for i in self.items]
+            return [self.__build_item(i, show_time_in_label) for i in items]
     
-        def __build_item(self, post):    
+        def __build_item(self, post, show_time_in_label):    
             ##item op tijd gesorteerd zodat ze op volgorde staan.
             if (len(post['label']) == 0):
                 titelnaam = post['serienaam']
             else:
                 titelnaam = post['label']
 
-            if (self.show_time_in_label):
+            if (show_time_in_label):
                 titelnaam += ' (' + post['TimeStamp'].split('T')[1] + ')'
 
-            item = {
-                'label': titelnaam,
-                'date': post['date'],
-                'plot': post['plot'],
-                'studio': post['studio'],
-                'thumbnail': post['thumbnail'],
-                'whatson_id': post['whatson_id'],
-            }
+            item = post
+            item['label'] = titelnaam
             return item
 
         def __stringnaardatumnaarstring(self, datumstring):

@@ -42,6 +42,16 @@ def get_url(**kwargs):
     """
     return '{0}?{1}'.format(_url, urlencode(kwargs))
 
+def setMediaView():
+    try:
+        kodiVersion = xbmc.getInfoLabel('System.BuildVersion').split()[0]
+        kodiVersion = kodiVersion.split('.')[0]
+        skinTheme = xbmc.getSkinDir().lower()
+        if 'onfluence' in skinTheme:
+            xbmc.executebuiltin('Container.SetViewMode(504)')
+    except:
+        pass 
+
 def list_categories():
     """
     Create the list of video categories in the Kodi interface.
@@ -72,6 +82,7 @@ def list_categories():
         # 'mediatype' is needed for a skin to display info for this ListItem correctly.
         list_item.setInfo('video', {'title': category['label'],
                                     'plot': category['plot'],
+                                    'genre': category['genres'],
                                     'studio': category['studio'],
                                     'mediatype': 'video'})
         # Create a URL for a plugin recursive call.
@@ -82,7 +93,7 @@ def list_categories():
         # Add our item to the Kodi virtual folder listing.
         xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
     # Add a sort method for the virtual folder items (alphabetically, ignore articles)
-    # xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
+    xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
     # Finish creating a virtual folder.
     xbmcplugin.endOfDirectory(_handle)
 
@@ -108,8 +119,13 @@ def list_videos(nebo_id):
         # 'mediatype' is needed for skin to display info for this ListItem correctly.
         list_item.setInfo('video', {'title': video['label'],
                                      'date': video['date'],
+                                     'premiered': video['premiered'],
+                                     'aired': video['aired'],
                                      'plot': video['plot'],
                                      'studio': video['studio'],
+                                     'year': video['year'],
+                                     'duration': video['duration'],
+                                     'genre': video['genres'],
                                     'mediatype': 'video'})
         # Set graphics (thumbnail, fanart, banner, poster, landscape etc.) for the list item.
         # Here we use the same image for all items for simplicity's sake.
@@ -127,6 +143,7 @@ def list_videos(nebo_id):
         # Add our item to the Kodi virtual folder listing.
         xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
     # Add a sort method for the virtual folder items (alphabetically, ignore articles)
+    xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_DATE)
     xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
     # Finish creating a virtual folder.
     xbmcplugin.endOfDirectory(_handle)
@@ -158,6 +175,7 @@ def router(paramstring):
         if params['action'] == 'listing':
             # Display the list of videos in a provided category.
             list_videos(params['nebo_id'])
+            setMediaView()
         elif params['action'] == 'play':
             # Play a video from a provided URL.
             play_video(params['whatson_id'])
@@ -170,6 +188,7 @@ def router(paramstring):
         # If the plugin is called from Kodi UI without any parameters,
         # display the list of video categories
         list_categories()
+        setMediaView()
 
 def add_subtitlesstream(subtitles):
 	player = xbmc.Player()
