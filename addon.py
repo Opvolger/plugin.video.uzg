@@ -192,7 +192,7 @@ def router(paramstring):
 
 def add_subtitlesstream(subtitles):
 	player = xbmc.Player()
-	for _ in xrange(30):
+	for _ in range(30):
 		if player.isPlaying():
 			break
 		time.sleep(1)
