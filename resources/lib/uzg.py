@@ -10,7 +10,13 @@
     based on: https://github.com/jbeluch/plugin.video.documentary.net
 
 '''
-import urllib2 ,re ,time ,json
+try:
+    # For Python 3.0 and later
+    from urllib.request import urlopen, Request    
+except ImportError:
+    # Fall back to Python 2's urllib2
+    from urllib2 import urlopen, Request    
+import re ,time ,json
 from datetime import datetime
 
 class Uzg:
@@ -23,9 +29,9 @@ class Uzg:
             self.show_time_in_label = False
 
         def __overzicht(self):        
-            req = urllib2.Request('http://apps-api.uitzendinggemist.nl/series.json')
+            req = Request('http://apps-api.uitzendinggemist.nl/series.json')
             req.add_header('User-Agent', 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0')
-            response = urllib2.urlopen(req)
+            response = urlopen(req)
             link=response.read()
             response.close()
             json_data = json.loads(link)
@@ -42,9 +48,9 @@ class Uzg:
             self.overzichtcache = sorted(uzgitemlist, key=lambda x: x['label'], reverse=False)
             
         def __items(self, nebo_id):
-            req = urllib2.Request('http://apps-api.uitzendinggemist.nl/series/'+nebo_id+'.json')
+            req = Request('http://apps-api.uitzendinggemist.nl/series/'+nebo_id+'.json')
             req.add_header('User-Agent', 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0')
-            response = urllib2.urlopen(req)
+            response = urlopen(req)
             link=response.read()
             response.close()
             json_data = json.loads(link)
@@ -67,20 +73,20 @@ class Uzg:
             self.items = uzgitemlist
 
         def __get_data_from_url(self, url):
-            req = urllib2.Request(url)
+            req = Request(url)
             req.add_header('User-Agent', 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0')
-            response = urllib2.urlopen(req)
+            response = urlopen(req)
             data=response.read()
             response.close()
             return data    
 
         def get_ondertitel(self, whatson_id):
-            return 'http://apps-api.uitzendinggemist.nl/webvtt/'+whatson_id+'.webvtt'
+            return 'https://tt888.omroep.nl/tt888/'+whatson_id
             
         def get_play_url(self, whatson_id):
             ##token aanvragen
             data = self.__get_data_from_url('http://ida.omroep.nl/app.php/auth')
-            token = re.search(r'token\":"(.*?)"', data).group(1)
+            token = re.search(r'token\":"(.*?)"', data.decode('utf-8')).group(1)
             ##video lokatie aanvragen
             data = self.__get_data_from_url('http://ida.omroep.nl/app.php/'+whatson_id+'?adaptive&adaptive=yes&part=1&token='+token)
             json_data = json.loads(data)
