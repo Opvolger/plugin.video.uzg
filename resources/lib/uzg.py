@@ -75,7 +75,7 @@ class Uzg:
             return data    
 
         def get_ondertitel(self, whatson_id):
-            return 'http://apps-api.uitzendinggemist.nl/webvtt/'+whatson_id+'.webvtt'
+            return 'https://tt888.omroep.nl/tt888/'+whatson_id
             
         def get_play_url(self, whatson_id):
             ##token aanvragen
