@@ -6,7 +6,7 @@ print(uzg.get_overzicht())
 
 print('\n\n')
 
-print(uzg.get_items('VARA_101377717'))
+print(uzg.items('VARA_101377717'))
 
 print('\n\n')
 

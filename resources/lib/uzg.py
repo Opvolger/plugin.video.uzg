@@ -20,27 +20,94 @@ import re ,time ,json
 from datetime import datetime
 
 class Uzg:
-        def __overzicht(self):        
-            req = Request('http://apps-api.uitzendinggemist.nl/series.json')
+
+        def getJsonData(self, url):
+            req = Request(url)
             req.add_header('User-Agent', 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0')
+            req.add_header('ApiKey', 'e45fe473feaf42ad9a215007c6aa5e7e')
             response = urlopen(req)
             link=response.read()
-            response.close()
-            json_data = json.loads(link)
+            response.close()            
+            return json.loads(link)
+        
+        def getAZPage(self):
+            # default is page 1
+            urlAz = 'https://start-api.npo.nl/page/catalogue?az=Z'
+            #urlAz = 'https://start-api.npo.nl/page/catalogue?az='
+            data = self.getJsonData(urlAz)
+            pages = self.getPageCount(data)
+            # de eerste hebben we al gehad.
+            print(pages)
             uzgitemlist = list()
-            for serie in json_data:
-                uzgitem = {
-                    'label': serie['name'],
-                    'nebo_id': serie['nebo_id'],
-                    'thumbnail': serie['image'],
-                    'genres': serie['genres'],
-                    'plot': serie['description'],
-                    'studio': ', '.join(serie['broadcasters']),
-                }
-                uzgitemlist.append(uzgitem)                
-            return sorted(uzgitemlist, key=lambda x: x['label'], reverse=False)
-            
-        def __items(self, nebo_id):
+            uzgitemlist.extend(self.getAZItems(data))
+            if (pages > 1):
+                for x in range(pages-1):
+                    page = x + 2
+                    data = self.getJsonData(urlAz + '&page=' + str(page))
+                    uzgitemlist.extend(self.getAZItems(data))                    
+            sortedlist = sorted(uzgitemlist, key=lambda x: x['label'], reverse=False)
+            return sortedlist
+        
+        def getAZItems(self, data):
+            uzgitemlist = list()
+            for component in data['components']:
+                if (component['type'] == 'grid'):
+                    items = component['data']['items']
+                    for serie in items:
+                        uzgitem = {
+                            'label': serie['title'],
+                            'nebo_id': serie['id'],
+                            'thumbnail': '',
+                            'genres': '',
+                            'plot': serie['description'],
+                            'studio': ', '.join(serie['broadcasters']),
+                            'apilink': serie['_links']['page']['href'],
+                        }
+                        uzgitemlist.append(uzgitem)
+                    return uzgitemlist
+
+        def getPageCount(self, data):
+            for component in data['components']:
+                if (component['type'] == 'grid'):
+                    print(component['data']['total'])
+                    return (component['data']['total'] // 20) + (component['data']['total'] % 20)
+            return 0
+
+        def episodes(self, link):
+            data = self.getJsonData(link)
+            uzgitemlist = list()
+            # todo page count!
+            for component in data['components']:
+                if ((component['type'] == 'grid') and (component['id'] == 'grid-episodes')):
+                    items = component['data']['items']                    
+                    for episode in items:
+                        thumbnail = ''
+                        if episode['images']['original']:
+                            thumbnail = episode['images']['original']['formats']['original']['source']
+                        datum = (episode['broadcastDate'].split('T')[0])
+                        uzgitem = { 'label': episode['title']
+                                    , 'aired': datum
+                                    , 'premiered':datum
+                                    , 'year': datum.split('-')[0]
+                                    , 'date': self.dateitem(datum)
+                                    , 'TimeStamp': episode['broadcastDate'].split('Z')[0]
+                                    , 'thumbnail': thumbnail
+                                    , 'genres': ''
+                                    , 'duration': episode['duration']
+                                    , 'plot': episode['descriptionLong']
+                                    , 'studio': ', '.join(episode['broadcasters'])
+                                    , 'whatson_id': episode['id']}
+                        uzgitemlist.append(uzgitem)
+                    return uzgitemlist
+
+        def dateitem(self, datum):
+            try:
+                return datetime.strptime(datum, "%Y-%m-%d").strftime("%d-%m-%Y")
+            except TypeError:
+                return datetime(*(time.strptime(datum, "%Y-%m-%d")[0:6])).strftime("%d-%m-%Y")
+
+        def items(self, link):
+            nebo_id = 'VARA_101377717'
             req = Request('http://apps-api.uitzendinggemist.nl/series/'+nebo_id+'.json')
             req.add_header('User-Agent', 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0')
             response = urlopen(req)
@@ -97,16 +164,17 @@ class Uzg:
             return url_play
             
         def get_overzicht(self):
-            return self.__overzicht()         
+            return self.getAZPage()
+            #return self.__overzicht()         
 
 
-        def get_items(self, nebo_id):
-            items = self.__items(nebo_id)
+        def get_items(self, link):
+            items = self.episodes(link)
             show_time_in_label = False
             
             for item in items:
                 for ref in items:
-                    if (item['date'] == ref['date'] and item['whatson_id'] != ref['whatson_id']):
+                    if (item['aired'] == ref['aired'] and item['whatson_id'] != ref['whatson_id']):
                         # Er zijn meerdere afleveringen op dezelfde
                         # dag: toon de tijd in het label.
                         show_time_in_label = True
@@ -115,10 +183,7 @@ class Uzg:
     
         def __build_item(self, post, show_time_in_label):    
             ##item op tijd gesorteerd zodat ze op volgorde staan.
-            if (len(post['label']) == 0):
-                titelnaam = post['serienaam']
-            else:
-                titelnaam = post['label']
+            titelnaam = post['label']
 
             if (show_time_in_label):
                 titelnaam += ' (' + post['TimeStamp'].split('T')[1] + ')'

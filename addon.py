@@ -87,7 +87,7 @@ def list_categories():
                                     'mediatype': 'video'})
         # Create a URL for a plugin recursive call.
         # Example: plugin://plugin.video.example/?action=listing&category=Animals
-        url = get_url(action='listing', nebo_id=category['nebo_id'])
+        url = get_url(action='listing', link=category['apilink'])
         # is_folder = True means that this item opens a sub-list of lower level items.
         is_folder = True
         # Add our item to the Kodi virtual folder listing.
@@ -97,7 +97,7 @@ def list_categories():
     # Finish creating a virtual folder.
     xbmcplugin.endOfDirectory(_handle)
 
-def list_videos(nebo_id):
+def list_videos(link):
     """
     Create the list of playable videos in the Kodi interface.
     :param category: Category name
@@ -105,12 +105,12 @@ def list_videos(nebo_id):
     """
     # Set plugin category. It is displayed in some skins as the name
     # of the current section.
-    xbmcplugin.setPluginCategory(_handle, nebo_id)
+    xbmcplugin.setPluginCategory(_handle, link)
     # Set plugin content. It allows Kodi to select appropriate views
     # for this type of content.
     xbmcplugin.setContent(_handle, 'videos')
     # Get the list of videos in the category.
-    videos = uzg.get_items(nebo_id)
+    videos = uzg.get_items(link)
     # Iterate through videos.
     for video in videos:
         # Create a list item with a text label and a thumbnail image.
@@ -118,14 +118,14 @@ def list_videos(nebo_id):
         # Set additional info for the list item.
         # 'mediatype' is needed for skin to display info for this ListItem correctly.
         list_item.setInfo('video', {'title': video['label'],
-                                     'date': video['date'],
                                      'premiered': video['premiered'],
                                      'aired': video['aired'],
+                                     'date': video['date'],
                                      'plot': video['plot'],
                                      'studio': video['studio'],
                                      'year': video['year'],
                                      'duration': video['duration'],
-                                     'genre': video['genres'],
+                                     #'genre': video['genres'],
                                     'mediatype': 'video'})
         # Set graphics (thumbnail, fanart, banner, poster, landscape etc.) for the list item.
         # Here we use the same image for all items for simplicity's sake.
@@ -174,7 +174,7 @@ def router(paramstring):
     if params:
         if params['action'] == 'listing':
             # Display the list of videos in a provided category.
-            list_videos(params['nebo_id'])
+            list_videos(params['link'])
             setMediaView()
         elif params['action'] == 'play':
             # Play a video from a provided URL.
