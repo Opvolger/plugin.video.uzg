@@ -80,10 +80,17 @@ def list_letter(letter):
 def list_franchise(link):
     xbmcplugin.setPluginCategory(_handle, link)
     xbmcplugin.setContent(_handle, 'videos')
-    episodesOrseason = uzg.get_items(link)
+    episodesOrseason = uzg.episodesOrseason(link)
     if (episodesOrseason['type'] == 'episodes'):
         # het zijn gelijk afleveringen, pak de items en voeg deze toe!
         add_video_items(episodesOrseason['items'])
+        # next 20 afleveringen
+        if (episodesOrseason['linknext'] is not None):
+            list_item = xbmcgui.ListItem(label='. -- MORE -- .') # TODO deze moet in language file
+            list_item.setProperty('IsPlayable', 'false')
+            url = get_url(action='episodes', link=episodesOrseason['linknext'])
+            is_folder = True
+            xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
         xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_DATE)
         xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
     else:
@@ -123,7 +130,7 @@ def router(paramstring):
         if params['action'] == 'letter':
             list_letter(params['letter'])
         elif params['action'] == 'episodes':
-            #xbmc.log('link: ' + params['link'], xbmc.LOGERROR)
+            xbmc.log('link: ' + params['link'], xbmc.LOGERROR)
             list_franchise(params['link'])
             setMediaView()
         elif params['action'] == 'play':

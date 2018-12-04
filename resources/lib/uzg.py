@@ -39,8 +39,10 @@ class Uzg:
         def episodesOrseason(self, link):
             if ('episodes?seasonId' in link):
                 # we hebben te maken met items onder een season, deze kunnen gelijk terug.
-                return { 'type': 'episodes',
-                         'items': self.__episodes(self.__getJsonData(link)['items']) }
+                return self.__get_episodesitems(self.__getJsonData(link))
+            if ('/media/series/' in link and '?page=' in link):
+                # we hebben met een nex page te maken
+                return self.__get_episodesitems(self.__getJsonData(link))
             data = self.__getJsonData(link)
             series_id = ''
             # todo page count! (je krijgt nu alleen de laatste 20 items)
@@ -52,8 +54,7 @@ class Uzg:
                     series_id = component['series']['id']
                 if ((component['type'] == 'grid') and (component['id'] == 'grid-episodes')):
                     if (component['filter'] is None):
-                        return { 'type': 'episodes',
-                                 'items': self.__episodes(component['data']['items']) }
+                        return self.__get_episodesitems(component['data'])
                     else:
                         # we hebben een filter, we maken een season overzicht
                         # TODO controle of filter ook echt season is.
@@ -62,7 +63,17 @@ class Uzg:
             # we hebben niks gevonden, dus stuur maar een lege lijst terug
             uzgitemlist = list()
             return { 'type': 'episodes',
-                     'items': uzgitemlist }
+                     'items': uzgitemlist,
+                     'linknext': None }
+
+        def __get_episodesitems(self, data):
+            linknext = None
+            if (data['_links'].get('next')):
+                linknext = data['_links']['next']['href']
+            return { 'type': 'episodes',
+                        'items': self.__episodes(data['items']),
+                        'linknext': linknext }
+
 
         def __getJsonData(self, url):
             req = Request(url)
@@ -132,7 +143,6 @@ class Uzg:
                 genres = ''
                 if episode['genres']:
                     genres = ', '.join(episode['genres'][0]['terms'])
-                # TODO datum tijd is UTC (Z), dus 12 uur = 13 uur (in de winter)
                 uzgitem = { 'label': episode['title']
                             , 'art': {  'thumb': self.__getimage(episode),
                                         'icon':  self.__getimage(episode),
@@ -150,6 +160,7 @@ class Uzg:
                                         'mediatype': 'video' } 
                             # 'mediatype' is needed for skin to display info for this ListItem correctly.
                             # https://codedocs.xyz/xbmc/xbmc/group__python__xbmcgui__listitem.html#ga0b71166869bda87ad744942888fb5f14
+                            # TODO datum tijd is UTC (Z), dus 12 uur = 13 uur (in de winter) en 14 uur in de zomer tijd. dit is nog onjuist
                             , 'timeStamp': episode['broadcastDate'].split('Z')[0]
                             , 'whatson_id': episode['id']}
                 uzgitemlist.append(uzgitem)
@@ -159,7 +170,7 @@ class Uzg:
                     if (item['video']['aired'] == ref['video']['aired'] and item['whatson_id'] != ref['whatson_id']):
                         # Er zijn meerdere afleveringen op dezelfde dag: toon de tijd in het label.
                         show_time_in_label = True
-            itemsreturn = [self.__build_item(i, show_time_in_label) for i in uzgitemlist]
+            itemsreturn = [self.__rebuild_item(i, show_time_in_label) for i in uzgitemlist]
             return itemsreturn
 
         def __dateitem(self, datum):
@@ -193,19 +204,15 @@ class Uzg:
             json_data = json.loads(data)
             url_play = json_data['url']
             return url_play   
-
-        def get_items(self, link):
-            items = self.episodesOrseason(link)
-            return items
-            
     
-        def __build_item(self, post, show_time_in_label):    
+        def __rebuild_item(self, post, show_time_in_label):    
             ##item op tijd gesorteerd zodat ze op volgorde staan en verschil is te zien
             titelnaam = post['label']
             if (titelnaam is None):
                 titelnaam = ''
             if (show_time_in_label and post['timeStamp'] is not None ):
-                titelnaam += ' (' + post['timeStamp'].split('T')[1] + ')'
+                # TODO datum tijd is UTC (Z), dus 12 uur = 13 uur (in de winter) en 14 uur in de zomer tijd. dit is nog onjuist
+                titelnaam += ' (' + post['timeStamp'].split('T')[1] + '[utc])'
 
             item = post
             item['label'] = titelnaam

@@ -1,4 +1,8 @@
-﻿Version 2.9.0
+﻿Version 2.9.1
+* Code cleanup
+* Known issues Timezone
+
+Version 2.9.0
 * New API WIP.
 
 Version 2.0.0
