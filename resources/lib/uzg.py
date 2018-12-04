@@ -77,37 +77,71 @@ class Uzg:
                     return (component['data']['total'] // 20) + (component['data']['total'] % 20)
             return 0
 
-        def episodes(self, link):
+        def episodesOrseason(self, link):
+            if ('episodes?seasonId' in link):
+                return { 'type': 'episodes',
+                         'items': self.episodes(self.getJsonData(link)['items']) }
             print(link)
             data = self.getJsonData(link)
             uzgitemlist = list()
+            series_id = ''
             # todo page count!
             for component in data['components']:
+                # dit is de eerste dus word netjes gevuld in de for loop
+                if (component['type'] == 'franchiseheader'):
+                    series_id = component['series']['id']
                 if ((component['type'] == 'grid') and (component['id'] == 'grid-episodes')):
-                    items = component['data']['items']
-                    for episode in items:
-                        thumbnail = ''
-                        if episode['images']['original']:
-                            thumbnail = episode['images']['original']['formats']['original']['source']
-                        datum = (episode['broadcastDate'].split('T')[0])
-                        genres = ''
-                        if episode['genres']:
-                            genres = ', '.join(episode['genres'][0]['terms'])
-                        # datum tijd is UTC, dus 12 uur = 13 uur (in de winter)
-                        uzgitem = { 'label': episode['title']
-                                    , 'aired': datum
-                                    , 'premiered':datum
-                                    , 'year': datum.split('-')[0]
-                                    , 'date': self.dateitem(datum)
-                                    , 'TimeStamp': episode['broadcastDate'].split('Z')[0]
-                                    , 'thumbnail': thumbnail
-                                    , 'genres': genres
-                                    , 'duration': episode['duration']
-                                    , 'plot': episode['descriptionLong']
-                                    , 'studio': ', '.join(episode['broadcasters'])
-                                    , 'whatson_id': episode['id']}
-                        uzgitemlist.append(uzgitem)
+                    if (component['filter'] is None):
+                        return { 'type': 'episodes',
+                                 'items': self.episodes(component['data']['items']) }
+                    else:
+                        return { 'type': 'season',
+                                 'items': self.season(component['filter']['options'], series_id) }
+            return { 'type': 'episodes',
+                     'items': uzgitemlist }
+
+        def season(self, options, series_id):
+            uzgitemlist = list()
+            for seasonfiler in options:
+                url = 'https://start-api.npo.nl/media/series/'+ series_id  +'/episodes?seasonId=' + seasonfiler['value']
+                uzgitem = { 'label': seasonfiler['display']
+                            , 'link': url}
+                uzgitemlist.append(uzgitem)
             return uzgitemlist
+
+        def episodes(self, items):
+            uzgitemlist = list()
+            for episode in items:
+                thumbnail = ''
+                if episode['images']['original']:
+                    thumbnail = episode['images']['original']['formats']['original']['source']
+                datum = (episode['broadcastDate'].split('T')[0])
+                genres = ''
+                if episode['genres']:
+                    genres = ', '.join(episode['genres'][0]['terms'])
+                # datum tijd is UTC, dus 12 uur = 13 uur (in de winter)
+                uzgitem = { 'label': episode['title']
+                            , 'aired': datum
+                            , 'premiered':datum
+                            , 'year': datum.split('-')[0]
+                            , 'date': self.dateitem(datum)
+                            , 'TimeStamp': episode['broadcastDate'].split('Z')[0]
+                            , 'thumbnail': thumbnail
+                            , 'genres': genres
+                            , 'duration': episode['duration']
+                            , 'plot': episode['descriptionLong']
+                            , 'studio': ', '.join(episode['broadcasters'])
+                            , 'whatson_id': episode['id']}
+                uzgitemlist.append(uzgitem)
+            show_time_in_label = False
+            for item in uzgitemlist:
+                for ref in uzgitemlist:
+                    if (item['aired'] == ref['aired'] and item['whatson_id'] != ref['whatson_id']):
+                        # Er zijn meerdere afleveringen op dezelfde
+                        # dag: toon de tijd in het label.
+                        show_time_in_label = True
+            itemsreturn = [self.__build_item(i, show_time_in_label) for i in uzgitemlist]
+            return itemsreturn
 
         def dateitem(self, datum):
             try:
@@ -142,16 +176,9 @@ class Uzg:
             return url_play   
 
         def get_items(self, link):
-            items = self.episodes(link)
-            show_time_in_label = False
-            for item in items:
-                for ref in items:
-                    if (item['aired'] == ref['aired'] and item['whatson_id'] != ref['whatson_id']):
-                        # Er zijn meerdere afleveringen op dezelfde
-                        # dag: toon de tijd in het label.
-                        show_time_in_label = True
-
-            return [self.__build_item(i, show_time_in_label) for i in items]
+            items = self.episodesOrseason(link)
+            return items
+            
     
         def __build_item(self, post, show_time_in_label):    
             ##item op tijd gesorteerd zodat ze op volgorde staan.

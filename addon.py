@@ -137,9 +137,28 @@ def list_videos(link):
     # for this type of content.
     xbmcplugin.setContent(_handle, 'videos')
     # Get the list of videos in the franchise.
-    videos = uzg.get_items(link)
+    episodesOrseason = uzg.get_items(link)
+    if (episodesOrseason['type'] == 'episodes'):
+        add_video_items(episodesOrseason['items'])
+        # Add a sort method for the virtual folder items (alphabetically, ignore articles)
+        xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_DATE)
+        xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
+    else:
+        add_season_items(episodesOrseason['items'])
+    # Finish creating a virtual folder.
+    xbmcplugin.endOfDirectory(_handle)
+
+def add_season_items(seasonitems):
     # Iterate through videos.
-    for video in videos:
+    for seasonitem in seasonitems:
+        list_item = xbmcgui.ListItem(label=seasonitem['label'])
+        url = get_url(action='episodes', link=seasonitem['link'])
+        is_folder = True
+        xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)  
+
+def add_video_items(videoitems):
+    # Iterate through videos.
+    for video in videoitems:
         # Create a list item with a text label and a thumbnail image.
         list_item = xbmcgui.ListItem(label=video['label'])
         # Set additional info for the list item.
@@ -169,11 +188,6 @@ def list_videos(link):
         is_folder = False
         # Add our item to the Kodi virtual folder episodes.
         xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
-    # Add a sort method for the virtual folder items (alphabetically, ignore articles)
-    xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_DATE)
-    xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
-    # Finish creating a virtual folder.
-    xbmcplugin.endOfDirectory(_handle)
 
 def play_video(whatson_id):
     """
