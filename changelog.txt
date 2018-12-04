@@ -1,4 +1,7 @@
-﻿Version 2.0.0
+﻿Version 2.9.0
+* New API WIP.
+
+Version 2.0.0
 * Fix subtitle
 * Python 3.0
 * Show episode air time only if there are multiple episodes in one day (thnx to jorissteyn)
