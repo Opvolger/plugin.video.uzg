@@ -2,6 +2,7 @@
 <addon id="plugin.video.uzg" name="Uitzendinggemist (NPO)" provider-name="Bas Magré (Opvolger)" version="2.0.0">
   <requires>
     <import addon="xbmc.python" version="2.26.0" />
+    <import addon="script.common.plugin.cache" version="2.5.10"/>
   </requires>
   <extension library="addon.py" point="xbmc.python.pluginsource">
     <provides>video</provides>

@@ -12,14 +12,19 @@
 import resources.lib.uzg
 
 import sys
-try:
+if (sys.version_info[0] == 3):
     # For Python 3.0 and later
     from urllib.parse import urlencode
     from urllib.parse import parse_qsl
-except ImportError:
+    import storageserverdummy as StorageServer  
+else:
     # Fall back to Python 2's urllib2
     from urllib import urlencode
     from urlparse import parse_qsl
+    try:
+        import StorageServer
+    except:
+        import storageserverdummy as StorageServer
 
 import time
 import xbmcplugin, xbmcgui
@@ -31,6 +36,7 @@ uzg = resources.lib.uzg.Uzg()
 
 _url = sys.argv[0]
 _handle = int(sys.argv[1])
+_cache = StorageServer.StorageServer(PLUGIN_ID, 24) # (Your plugin name, Cache time in hours)
 
 def get_url(**kwargs):
     """
@@ -52,45 +58,66 @@ def setMediaView():
     except:
         pass 
 
-def list_categories():
+def list_overzicht():
     """
-    Create the list of video categories in the Kodi interface.
+    Create the list of video franchises in the Kodi interface.
     """
-    # Set plugin category. It is displayed in some skins as the name
+    # Set plugin franchise. It is displayed in some skins as the name
+    # of the current section.
+    xbmcplugin.setPluginCategory(_handle, 'Uitzendinggemist (NPO)')
+    # Iterate through franchises
+    for letter in ['0-9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']:
+        # Create a list item with a text label and a thumbnail image.
+        list_item = xbmcgui.ListItem(label=letter)
+        # Create a URL for a plugin recursive call.
+        # Example: plugin://plugin.video.example/?action=episodes&franchise=Animals
+        url = get_url(action='letter', letter=letter)
+        # is_folder = True means that this item opens a sub-list of lower level items.
+        is_folder = True
+        # Add our item to the Kodi virtual folder episodes.
+        xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
+    # Finish creating a virtual folder.
+    xbmcplugin.endOfDirectory(_handle)
+
+def list_letter(letter):
+    """
+    Create the list of video franchises in the Kodi interface.
+    """
+    # Set plugin franchise. It is displayed in some skins as the name
     # of the current section.
     xbmcplugin.setPluginCategory(_handle, 'Uitzendinggemist (NPO)')
     # Set plugin content. It allows Kodi to select appropriate views
     # for this type of content.
     xbmcplugin.setContent(_handle, 'videos')
-    # Get video categories
-    categories = uzg.get_overzicht()
-    # Iterate through categories
-    for category in categories:
+    # Get video franchises
+    franchises = _cache.cacheFunction(uzg.getAZPage,letter)
+    # Iterate through franchises
+    for franchise in franchises:
         # Create a list item with a text label and a thumbnail image.
-        list_item = xbmcgui.ListItem(label=category['label'])
+        list_item = xbmcgui.ListItem(label=franchise['label'])
         # Set graphics (thumbnail, fanart, banner, poster, landscape etc.) for the list item.
         # Here we use the same image for all items for simplicity's sake.
         # In a real-life plugin you need to set each image accordingly.
-        list_item.setArt({'thumb': category['thumbnail'],
-                           'icon':  category['thumbnail'],
-                           'fanart':  category['thumbnail']})
+        list_item.setArt({'thumb': franchise['thumbnail'],
+                           'icon':  franchise['thumbnail'],
+                           'fanart':  franchise['thumbnail']})
         # Set additional info for the list item.
-        # Here we use a category name for both properties for for simplicity's sake.
+        # Here we use a franchise name for both properties for for simplicity's sake.
         # setInfo allows to set various information for an item.
         # For available properties see the following link:
         # https://codedocs.xyz/xbmc/xbmc/group__python__xbmcgui__listitem.html#ga0b71166869bda87ad744942888fb5f14
         # 'mediatype' is needed for a skin to display info for this ListItem correctly.
-        list_item.setInfo('video', {'title': category['label'],
-                                    'plot': category['plot'],
-                                    'genre': category['genres'],
-                                    'studio': category['studio'],
+        list_item.setInfo('video', {'title': franchise['label'],
+                                    'plot': franchise['plot'],
+                                    'genre': franchise['genres'],
+                                    'studio': franchise['studio'],
                                     'mediatype': 'video'})
         # Create a URL for a plugin recursive call.
-        # Example: plugin://plugin.video.example/?action=listing&category=Animals
-        url = get_url(action='listing', link=category['apilink'])
+        # Example: plugin://plugin.video.example/?action=episodes&franchise=Animals
+        url = get_url(action='episodes', link=franchise['apilink'])
         # is_folder = True means that this item opens a sub-list of lower level items.
         is_folder = True
-        # Add our item to the Kodi virtual folder listing.
+        # Add our item to the Kodi virtual folder episodes.
         xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
     # Add a sort method for the virtual folder items (alphabetically, ignore articles)
     xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
@@ -100,16 +127,16 @@ def list_categories():
 def list_videos(link):
     """
     Create the list of playable videos in the Kodi interface.
-    :param category: Category name
-    :type category: str
+    :param franchise: franchise name
+    :type franchise: str
     """
-    # Set plugin category. It is displayed in some skins as the name
+    # Set plugin franchise. It is displayed in some skins as the name
     # of the current section.
     xbmcplugin.setPluginCategory(_handle, link)
     # Set plugin content. It allows Kodi to select appropriate views
     # for this type of content.
     xbmcplugin.setContent(_handle, 'videos')
-    # Get the list of videos in the category.
+    # Get the list of videos in the franchise.
     videos = uzg.get_items(link)
     # Iterate through videos.
     for video in videos:
@@ -125,7 +152,7 @@ def list_videos(link):
                                      'studio': video['studio'],
                                      'year': video['year'],
                                      'duration': video['duration'],
-                                     #'genre': video['genres'],
+                                     'genre': video['genres'],
                                     'mediatype': 'video'})
         # Set graphics (thumbnail, fanart, banner, poster, landscape etc.) for the list item.
         # Here we use the same image for all items for simplicity's sake.
@@ -140,7 +167,7 @@ def list_videos(link):
         # Add the list item to a virtual Kodi folder.
         # is_folder = False means that this item won't open any sub-list.
         is_folder = False
-        # Add our item to the Kodi virtual folder listing.
+        # Add our item to the Kodi virtual folder episodes.
         xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
     # Add a sort method for the virtual folder items (alphabetically, ignore articles)
     xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_DATE)
@@ -172,8 +199,11 @@ def router(paramstring):
     params = dict(parse_qsl(paramstring))
     # Check the parameters passed to the plugin
     if params:
-        if params['action'] == 'listing':
-            # Display the list of videos in a provided category.
+        if params['action'] == 'letter':
+            list_letter(params['letter'])
+        elif params['action'] == 'episodes':
+            # Display the list of videos in a provided franchise.
+            xbmc.log('link: ' + params['link'], xbmc.LOGERROR)
             list_videos(params['link'])
             setMediaView()
         elif params['action'] == 'play':
@@ -186,8 +216,8 @@ def router(paramstring):
             raise ValueError('Invalid paramstring: {0}!'.format(paramstring))
     else:
         # If the plugin is called from Kodi UI without any parameters,
-        # display the list of video categories
-        list_categories()
+        # display the list of video franchises
+        list_overzicht()
         setMediaView()
 
 def add_subtitlesstream(subtitles):
