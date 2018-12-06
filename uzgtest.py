@@ -2,16 +2,12 @@ import resources.lib.uzg
 
 uzg = resources.lib.uzg.Uzg()
 
-print(uzg.get_overzicht())
+print(uzg.getAZPage2('W'))
 
-print('\n\n')
+print(uzg.episodesOrseason('https://start-api.npo.nl/page/franchise/VPWON_1260597'))
 
-print(uzg.get_items('VARA_101377717'))
+print(uzg.episodesOrseason('https://start-api.npo.nl/page/franchise/POW_03108581'))
 
-print('\n\n')
+print(uzg.episodesOrseason('https://start-api.npo.nl/media/series/POW_03108581/episodes?seasonId=POW_03137258'))
 
-print(uzg.get_play_url('AT_2096873'))
-
-print('\n\n')
-
-print(uzg.get_ondertitel('AT_2096873'))
+print(uzg.episodesOrseason('https://start-api.npo.nl/page/franchise/NOSJournaal'))
