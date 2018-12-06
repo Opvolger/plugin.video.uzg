@@ -130,7 +130,7 @@ def router(paramstring):
         if params['action'] == 'letter':
             list_letter(params['letter'])
         elif params['action'] == 'episodes':
-            xbmc.log('link: ' + params['link'], xbmc.LOGERROR)
+            #xbmc.log('link: ' + params['link'], xbmc.LOGERROR)
             list_franchise(params['link'])
             setMediaView()
         elif params['action'] == 'play':
