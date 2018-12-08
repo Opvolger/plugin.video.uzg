@@ -129,6 +129,18 @@ class Uzg:
                     thumbnail = item['images']['original']['formats']['tv']['source']
             return thumbnail
 
+        def __geteptitle(self, item):
+            eptitle = ''
+            if item['episodeTitle']:
+                    eptitle = item['episodeTitle']
+            return eptitle
+
+        def __getepdetail(self, item):
+            epdetail = ''
+            if item['images']:
+                    epdetail = item['images']['grid.tile']['alt']
+            return epdetail
+
         def __getgenres(self, item):
             genres = ''
             if item['genres']:
@@ -148,11 +160,11 @@ class Uzg:
                                         'icon':  self.__getimage(episode),
                                         'fanart':  self.__getimage(episode) }
                             , 'video': {
-                                        'title': episode['title'],
+                                        'title': self.__geteptitle(episode) ,
                                         'premiered': datum,
                                         'aired': datum,
                                         'date': self.__dateitem(datum),
-                                        'plot': episode['descriptionLong'],
+                                        'plot': self.__getepdetail(episode),
                                         'studio': ', '.join(episode['broadcasters']),
                                         'year': datum.split('-')[0],
                                         'duration': episode['duration'],
@@ -216,5 +228,5 @@ class Uzg:
 
             item = post
             item['label'] = titelnaam
-            item['video']['title'] = titelnaam
+            #item['video']['title'] = titelnaam
             return item
