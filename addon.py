@@ -87,7 +87,7 @@ def list_franchise(link):
         add_video_items(episodesOrseason['items'])
         # next 20 afleveringen
         if (episodesOrseason['linknext'] is not None):
-            list_item = xbmcgui.ListItem(label='. -- MORE -- .') # TODO deze moet in language file
+            list_item = xbmcgui.ListItem(label='[  Volgende pagina  ]') # TODO deze moet in language file
             list_item.setProperty('IsPlayable', 'false')
             url = get_url(action='episodes', link=episodesOrseason['linknext'])
             is_folder = True
