@@ -79,7 +79,8 @@ def list_letter(letter):
 
 def list_franchise(link):
     xbmcplugin.setPluginCategory(_handle, link)
-    xbmcplugin.setContent(_handle, 'videos')
+    #enable media info viewtype zodat "plot" van een aflevering ook getoond kan worden (indien gewenst)
+    xbmcplugin.setContent(_handle, 'movies')
     episodesOrseason = uzg.episodesOrseason(link)
     if (episodesOrseason['type'] == 'episodes'):
         # het zijn gelijk afleveringen, pak de items en voeg deze toe!
