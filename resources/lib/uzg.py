@@ -143,12 +143,12 @@ class Uzg:
                 genres = ''
                 if episode['genres']:
                     genres = ', '.join(episode['genres'][0]['terms'])
-                uzgitem = { 'label': episode['title']
+                uzgitem = { 'label': episode['episodeTitle']
                             , 'art': {  'thumb': self.__getimage(episode),
                                         'icon':  self.__getimage(episode),
                                         'fanart':  self.__getimage(episode) }
                             , 'video': {
-                                        'title': episode['title'],
+                                        'title': episode['episodeTitle'],
                                         'premiered': datum,
                                         'aired': datum,
                                         'date': self.__dateitem(datum),
@@ -167,7 +167,7 @@ class Uzg:
             show_time_in_label = False
             for item in uzgitemlist:
                 for ref in uzgitemlist:
-                    if (item['video']['aired'] == ref['video']['aired'] and item['whatson_id'] != ref['whatson_id']):
+                    if (item['video']['aired'] == ref['video']['aired'] and item['label'] != ref['label'] and item['whatson_id'] != ref['whatson_id']):
                         # Er zijn meerdere afleveringen op dezelfde dag: toon de tijd in het label.
                         show_time_in_label = True
             itemsreturn = [self.__rebuild_item(i, show_time_in_label) for i in uzgitemlist]

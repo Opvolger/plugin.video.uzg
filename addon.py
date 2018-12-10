@@ -79,7 +79,7 @@ def list_letter(letter):
 
 def list_franchise(link):
     xbmcplugin.setPluginCategory(_handle, link)
-    xbmcplugin.setContent(_handle, 'videos')
+    xbmcplugin.setContent(_handle, 'movies')
     episodesOrseason = uzg.episodesOrseason(link)
     if (episodesOrseason['type'] == 'episodes'):
         # het zijn gelijk afleveringen, pak de items en voeg deze toe!
