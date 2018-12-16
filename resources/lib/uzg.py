@@ -19,57 +19,10 @@ else:
 import re ,time ,json
 from datetime import datetime,tzinfo,timedelta
 
-class Zone(tzinfo):
-    def __init__(self,offset,isdst,name):
-        self.offset = offset
-        self.isdst = isdst
-        self.name = name
-    def utcoffset(self, dt):
-        return timedelta(hours=self.offset) + self.dst(dt)
-    def dst(self, dt):
-            return timedelta(hours=1) if self.isdst else timedelta(0)
-    def tzname(self,dt):
-        return self.name
+from resources.lib.amsterdamzone import AmsterdamZone
+from resources.lib.zone import Zone
 
 class Uzg:
-    def __timezone(self, date):
-        isdst = False
-        # omdat ik niet gebruik wil maken van externe lib's, zomer/wintertijd uitgeprogrammeerd.
-        if self.__dateitem('2007-03-25T02:00:00Z') < date < self.__dateitem('2007-10-28T02:00:00Z'):
-            isdst = True
-        if self.__dateitem('2008-03-30T02:00:00Z') < date < self.__dateitem('2008-10-26T02:00:00Z'):
-            isdst = True
-        if self.__dateitem('2009-03-29T02:00:00Z') < date < self.__dateitem('2009-10-25T02:00:00Z'):
-            isdst = True
-        if self.__dateitem('2010-03-28T02:00:00Z') < date < self.__dateitem('2010-10-31T02:00:00Z'):
-            isdst = True
-        if self.__dateitem('2011-03-27T02:00:00Z') < date < self.__dateitem('2011-10-30T02:00:00Z'):
-            isdst = True
-        if self.__dateitem('2012-03-25T02:00:00Z') < date < self.__dateitem('2012-10-28T02:00:00Z'):
-            isdst = True
-        if self.__dateitem('2013-03-31T02:00:00Z') < date < self.__dateitem('2013-10-27T02:00:00Z'):
-            isdst = True
-        if self.__dateitem('2014-03-30T02:00:00Z') < date < self.__dateitem('2014-10-26T02:00:00Z'):
-            isdst = True
-        if self.__dateitem('2015-03-29T02:00:00Z') < date < self.__dateitem('2015-10-25T02:00:00Z'):
-            isdst = True
-        if self.__dateitem('2016-03-27T02:00:00Z') < date < self.__dateitem('2016-10-30T02:00:00Z'):
-            isdst = True
-        if self.__dateitem('2017-03-26T02:00:00Z') < date < self.__dateitem('2017-10-29T02:00:00Z'):
-            isdst = True
-        if self.__dateitem('2018-03-25T02:00:00Z') < date < self.__dateitem('2018-10-28T02:00:00Z'):
-            isdst = True
-        if self.__dateitem('2019-03-31T02:00:00Z') < date < self.__dateitem('2019-10-27T02:00:00Z'):
-            isdst = True
-        if self.__dateitem('2020-03-29T02:00:00Z') < date < self.__dateitem('2020-10-25T02:00:00Z'):
-            isdst = True
-        if self.__dateitem('2021-03-28T02:00:00Z') < date < self.__dateitem('2021-10-31T02:00:00Z'):
-            isdst = True
-        if self.__dateitem('2022-03-27T02:00:00Z') < date < self.__dateitem('2022-10-30T02:00:00Z'):
-            isdst = True
-        # Hier zal de zomer en wintertijd wel zijn afgeschaft :)
-        return Zone(+1, isdst ,'Europe/Amsterdam')
-
     def getAZPage2(self, letter):
         # default is page 1
         urlAz = 'https://start-api.npo.nl/media/series?az=' + letter
@@ -95,8 +48,6 @@ class Uzg:
             return self.__get_episodesitems(self.__getJsonData(link))
         data = self.__getJsonData(link)
         series_id = ''
-        # todo page count! (je krijgt nu alleen de laatste 20 items)
-        # kan niet allemaal doen, want journaal is wel 20000 items (1000 urls)
         for component in data['components']:
             # dit is de eerste dus word netjes gevuld in de for loop
             if (component['type'] == 'franchiseheader'):
@@ -111,9 +62,8 @@ class Uzg:
                     return { 'type': 'season',
                                 'items': self.__season(component['filter']['options'], series_id) }
         # we hebben niks gevonden, dus stuur maar een lege lijst terug
-        uzgitemlist = list()
         return { 'type': 'episodes',
-                    'items': uzgitemlist,
+                    'items': list(),
                     'linknext': None }
         
     def __get_episodesitems(self, data):
@@ -131,7 +81,7 @@ class Uzg:
         req.add_header('ApiKey', 'e45fe473feaf42ad9a215007c6aa5e7e')
         response = urlopen(req)
         link=response.read()
-        response.close()            
+        response.close()
         return json.loads(link)
 
     def __getAZItems(self, data):
@@ -192,7 +142,7 @@ class Uzg:
             if (episode['isOnlyOnNpoPlus'] == False):
                 genres = ''
                 datetime_episode = self.__dateitem(episode['broadcastDate']) # UTC
-                datetime_episode = datetime_episode.astimezone(self.__timezone(datetime_episode)) # Amsterdam
+                datetime_episode = datetime_episode.astimezone(AmsterdamZone(datetime_episode)) # Amsterdam
                 if episode['genres']:
                     genres = ', '.join(episode['genres'][0]['terms'])
                 uzgitem = { 'label': episode['episodeTitle']
@@ -257,7 +207,7 @@ class Uzg:
         data = self.__get_data_from_url(streamurl)
         json_data = json.loads(data)
         url_play = json_data['url']
-        return url_play   
+        return url_play
 
     def __rebuild_item(self, post, show_time_in_label):    
         ##item op tijd gesorteerd zodat ze op volgorde staan en verschil is te zien
@@ -265,7 +215,6 @@ class Uzg:
         if (titelnaam is None):
             titelnaam = ''
         if (show_time_in_label and post['timeStamp'] is not None ):
-            # TODO datum tijd is UTC (Z), dus 12 uur = 13 uur (in de winter) en 14 uur in de zomer tijd. dit is nog onjuist
             titelnaam += ' (' + post['timeStamp'] + ')'
 
         item = post
