@@ -1,4 +1,7 @@
-﻿Version 2.9.4
+﻿Version 2.9.5
+* Refactor
+
+Version 2.9.4
 * fix date/time in episode title
 * only display episodes with are not NPO Plus.
 
