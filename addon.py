@@ -8,7 +8,7 @@
     Uitzendinggemist(NPO) / uzg = Made by Bas Magre (Opvolger)
     
 '''
-import resources.lib.uzg
+from resources.lib.uzg import Uzg
 
 import sys
 if (sys.version_info[0] == 3):
@@ -26,16 +26,17 @@ else:
         import storageserverdummy as StorageServer
 
 import time
-import xbmcplugin, xbmcgui
+import xbmcplugin, xbmcgui, xbmcaddon
 
 PLUGIN_NAME = 'uzg'
 PLUGIN_ID = 'plugin.video.uzg'
 
-uzg = resources.lib.uzg.Uzg()
+uzg = Uzg()
 
 _url = sys.argv[0]
 _handle = int(sys.argv[1])
 _cache = StorageServer.StorageServer(PLUGIN_ID, 24) # (Your plugin name, Cache time in hours)
+_addon = xbmcaddon.Addon()
 
 # het in elkaar klussen van een url welke weer gebruikt word bij router
 def get_url(**kwargs):
@@ -66,7 +67,7 @@ def list_letter(letter):
     xbmcplugin.setPluginCategory(_handle, 'Uitzendinggemist (NPO)')
     xbmcplugin.setContent(_handle, 'videos')
     # ophalen franchises aan de hand van een "letter"
-    franchises = _cache.cacheFunction(uzg.getAZPage2,letter)
+    franchises = _cache.cacheFunction(uzg.getAZPage,letter)
     for franchise in franchises:
         list_item = xbmcgui.ListItem(label=franchise['label'])
         list_item.setArt(franchise['art'])
@@ -87,7 +88,7 @@ def list_franchise(link):
         add_video_items(episodesOrseason['items'])
         # next 20 afleveringen
         if (episodesOrseason['linknext'] is not None):
-            list_item = xbmcgui.ListItem(label='. -- MORE -- .') # TODO deze moet in language file
+            list_item = xbmcgui.ListItem(label='. -- ' + _addon.getLocalizedString(32003) + ' -- .')
             list_item.setProperty('IsPlayable', 'false')
             url = get_url(action='episodes', link=episodesOrseason['linknext'])
             is_folder = True
@@ -123,7 +124,7 @@ def play_video(whatson_id):
     xbmcplugin.setResolvedUrl(_handle, True, listitem=play_item)
     # ondertitels toevoegen als men dit wil.
     if (xbmcplugin.getSetting(_handle, "subtitle") == 'true'):
-    	add_subtitlesstream(uzg.get_ondertitel(whatson_id))
+    	add_subtitlesstream(Uzg.get_ondertitel(whatson_id))
 
 def router(paramstring):
     params = dict(parse_qsl(paramstring))

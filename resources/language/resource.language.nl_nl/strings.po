@@ -17,3 +17,7 @@ msgstr "Instellingen"
 msgctxt "#32002"
 msgid "Enable Subtitle"
 msgstr "Aanzetten Ondertiteling"
+
+msgctxt "#32003"
+msgid "Older"
+msgstr "Oudere"

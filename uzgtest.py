@@ -2,7 +2,7 @@ import resources.lib.uzg
 
 uzg = resources.lib.uzg.Uzg()
 
-print(uzg.getAZPage2('W'))
+print(uzg.getAZPage('W'))
 
 print(uzg.episodesOrseason('https://start-api.npo.nl/page/franchise/VPWON_1260597'))
 
