@@ -1,7 +1,9 @@
-Version 2.9.3
-* episode name fix.
+﻿Version 2.9.4
 * fix date/time in episode title
 * only display episodes with are not NPO Plus.
+
+Version 2.9.3
+* episode name fix.
 
 Version 2.9.2
 * Support for KODI 17
