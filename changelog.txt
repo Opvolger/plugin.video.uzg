@@ -1,4 +1,7 @@
-﻿Version 2.9.5
+﻿Version 3.0.0
+* Subtitles are now always added and will not be displayed unless you want to see them.
+
+Version 2.9.5
 * Refactor
 
 Version 2.9.4
