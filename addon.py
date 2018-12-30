@@ -115,6 +115,7 @@ def add_video_items(videoitems):
         list_item.setInfo('video', video['video'])
         list_item.setArt(video['art'])
         list_item.setProperty('IsPlayable', 'true')
+        list_item.setSubtitles([Uzg.get_ondertitel(video['whatson_id'])])
         url = get_url(action='play', whatson_id=video['whatson_id'])
         is_folder = False
         xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
@@ -122,9 +123,9 @@ def add_video_items(videoitems):
 def play_video(whatson_id):
     play_item = xbmcgui.ListItem(path=uzg.get_play_url(whatson_id))
     xbmcplugin.setResolvedUrl(_handle, True, listitem=play_item)
-    # ondertitels toevoegen als men dit wil.
-    if (xbmcplugin.getSetting(_handle, "subtitle") == 'true'):
-    	add_subtitlesstream(Uzg.get_ondertitel(whatson_id))
+    # ondertitels weghalen als men ze niet wil.
+    if (xbmcplugin.getSetting(_handle, "subtitle") != 'true'):
+    	disable_subtitle()
 
 def router(paramstring):
     params = dict(parse_qsl(paramstring))
@@ -143,7 +144,7 @@ def router(paramstring):
         list_overzicht()
         setMediaView()
 
-def add_subtitlesstream(subtitles):
+def disable_subtitle():
 	player = xbmc.Player()
 	for _ in range(30):
 		if player.isPlaying():
@@ -151,8 +152,7 @@ def add_subtitlesstream(subtitles):
 		time.sleep(1)
 	else:
 		raise Exception('No video playing. Aborted after 30 seconds.')
-	player.setSubtitles(subtitles)
-	player.setSubtitleStream(1)
+	player.showSubtitles(0)
 
 if __name__ == '__main__':
     router(sys.argv[2][1:])
