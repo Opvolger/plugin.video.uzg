@@ -1,4 +1,7 @@
-﻿Version 3.0.0
+﻿Version 3.1.0
+* Search for title
+
+Version 3.0.0
 * Subtitles are now always added and will not be displayed unless you want to see them.
 
 Version 2.9.5

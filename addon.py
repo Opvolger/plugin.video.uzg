@@ -56,7 +56,7 @@ def setMediaView():
 def list_overzicht():
     xbmcplugin.setPluginCategory(_handle, 'Uitzendinggemist (NPO)')
     # Alle mogelijke "begin" "letters"
-    for letter in ['0-9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']:
+    for letter in ['?', '0-9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']:
         list_item = xbmcgui.ListItem(label=letter)
         url = get_url(action='letter', letter=letter)
         is_folder = True
@@ -66,8 +66,14 @@ def list_overzicht():
 def list_letter(letter):
     xbmcplugin.setPluginCategory(_handle, 'Uitzendinggemist (NPO)')
     xbmcplugin.setContent(_handle, 'videos')
-    # ophalen franchises aan de hand van een "letter"
-    franchises = _cache.cacheFunction(uzg.getAZPage,letter)
+    if (letter == '?'):
+        dialog = xbmcgui.Dialog()
+        d = dialog.input(_addon.getLocalizedString(32004), type=xbmcgui.INPUT_ALPHANUM)
+        # ophalen query
+        franchises = _cache.cacheFunction(uzg.getQueryPage,d)
+    else:
+        # ophalen franchises aan de hand van een "letter"
+        franchises = _cache.cacheFunction(uzg.getAZPage,letter)
     for franchise in franchises:
         list_item = xbmcgui.ListItem(label=franchise['label'])
         list_item.setArt(franchise['art'])

@@ -16,21 +16,15 @@ class Uzg:
     def __init__(self):
         self.npoHelpers = NpoHelpers()
 
+    def getQueryPage(self, tekst):
+        # default is page 1
+        url = 'https://start-api.npo.nl/media/series?query=' + tekst
+        return self.__getPage(url)
+
     def getAZPage(self, letter):
         # default is page 1
         urlAz = 'https://start-api.npo.nl/media/series?az=' + letter
-        data = self.npoHelpers.get_json_data(urlAz)
-        pages = self.npoHelpers.get_page_count(data)
-        # de eerste hebben we al gehad.
-        uzgitemlist = list()
-        uzgitemlist.extend(self.__getAZItems(data)) # page 1
-        if (pages > 1):
-            for x in range(pages-1):
-                page = x + 2
-                data = self.npoHelpers.get_json_data(urlAz + '&page=' + str(page))
-                uzgitemlist.extend(self.__getAZItems(data)) #page 2 t/m x                   
-        sortedlist = sorted(uzgitemlist, key=lambda x: x['label'].upper(), reverse=False)
-        return sortedlist
+        return self.__getPage(urlAz)
 
     def episodesOrseason(self, link):
         if ('episodes?seasonId' in link):
@@ -103,6 +97,20 @@ class Uzg:
                         , 'link': url }
             uzgitemlist.append(uzgitem)
         return uzgitemlist
+
+    def __getPage(self, url):
+        data = self.npoHelpers.get_json_data(url)
+        pages = self.npoHelpers.get_page_count(data)
+        # de eerste hebben we al gehad.
+        uzgitemlist = list()
+        uzgitemlist.extend(self.__getAZItems(data)) # page 1
+        if (pages > 1):
+            for x in range(pages-1):
+                page = x + 2
+                data = self.npoHelpers.get_json_data(url + '&page=' + str(page))
+                uzgitemlist.extend(self.__getAZItems(data)) #page 2 t/m x                   
+        sortedlist = sorted(uzgitemlist, key=lambda x: x['label'].upper(), reverse=False)
+        return sortedlist
 
     def __episodes(self, items):
         #items of uit season of wel uit franchise (opbouw is gelijk)

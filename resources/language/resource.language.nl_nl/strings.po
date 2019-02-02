@@ -21,3 +21,7 @@ msgstr "Aanzetten Ondertiteling"
 msgctxt "#32003"
 msgid "Older"
 msgstr "Oudere"
+
+msgctxt "#32004"
+msgid "Search for a part of the title"
+msgstr "Zoek op een deel van de titel"
