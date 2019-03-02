@@ -27,7 +27,11 @@ else:
 
 import time
 import xbmcplugin, xbmcgui, xbmcaddon
+import inputstreamhelper
 
+PROTOCOL = 'mpd'
+DRM = 'com.widevine.alpha'
+#DRM = 'widevine'
 PLUGIN_NAME = 'uzg'
 PLUGIN_ID = 'plugin.video.uzg'
 
@@ -127,11 +131,21 @@ def add_video_items(videoitems):
         xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
 
 def play_video(whatson_id):
-    play_item = xbmcgui.ListItem(path=uzg.get_play_url(whatson_id))
-    xbmcplugin.setResolvedUrl(_handle, True, listitem=play_item)
-    # ondertitels weghalen als men ze niet wil.
+    stream_info = uzg.get_play_url(whatson_id)
+    if (stream_info['drm']):
+        is_helper = inputstreamhelper.Helper(PROTOCOL, DRM) #drm=stream_info['drm'])
+        if is_helper.check_inputstream():
+            playitem = xbmcgui.ListItem(path=stream_info['url'])
+            playitem.setProperty('inputstreamaddon', is_helper.inputstream_addon)
+            playitem.setProperty('inputstream.adaptive.manifest_type', PROTOCOL)
+            playitem.setProperty('inputstream.adaptive.license_type', DRM) #stream_info['drm'])
+            playitem.setProperty('inputstream.adaptive.license_key', stream_info['license_key'])
+    else:
+        playitem = xbmcgui.ListItem(path=stream_info['url'])
+    xbmcplugin.setResolvedUrl(_handle, True, listitem=playitem)
     if (xbmcplugin.getSetting(_handle, "subtitle") != 'true'):
     	disable_subtitle()
+
 
 def router(paramstring):
     params = dict(parse_qsl(paramstring))

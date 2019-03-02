@@ -80,7 +80,7 @@ class Uzg:
                                 'title': serie['title'],
                                 'plot': serie['description'],
                                 'studio': NpoHelpers.get_studio(serie),
-                                'genres': NpoHelpers.get_genres(serie),
+                                'genre': NpoHelpers.get_genres(serie),
                                 'mediatype': 'video' } 
                     ,'nebo_id': serie['id']
                     ,'apilink': serie['_links']['page']['href']
@@ -139,7 +139,7 @@ class Uzg:
 
     @staticmethod
     def get_ondertitel(whatson_id):
-        return 'https://tt888.omroep.nl/tt888/'+whatson_id
+        return 'https://rs.poms.omroep.nl/v1/api/subtitles/'+whatson_id+'/nl_NL/CAPTION.vtt'
 
     @staticmethod
     def __rebuild_item(item):    
