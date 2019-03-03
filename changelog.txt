@@ -1,4 +1,11 @@
-﻿Version 3.1.0
+﻿Version 3.3.3
+* Api old video's working agian
+* Subtitles can be disabled agian in Kodi 18
+
+Version 3.2.0
+* Api changed, stream is now with DRM
+
+Version 3.1.0
 * Search for title
 
 Version 3.0.0

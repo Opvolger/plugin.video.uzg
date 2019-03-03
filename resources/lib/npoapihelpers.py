@@ -26,13 +26,24 @@ class NpoHelpers():
         response.close()
         return json.loads(link)
 
+    def get_subtitles(self, whatson_id):
+        url = 'https://rs.poms.omroep.nl/v1/api/subtitles/'+whatson_id+'/nl_NL/CAPTION.vtt'
+        # door deze controle geen ERROR in de logging van Kodi als er geen ondertitel bestaat
+        req = Request(url)
+        try:
+            response = urlopen(req)
+            response.close()
+        except:
+            return None
+        return url
+
     def get_play_url(self, whatson_id):
         url = 'https://start-api.npo.nl/media/'+whatson_id+'/stream'
         data_dash = self.get_json_data(url, NpoHelpers.__get_video_request_data('dash'))
         if (data_dash['drm']):
             data_dash['license_key'] = data_dash['licenseServer'] +'|X-Custom-Data=' + data_dash['licenseToken'] + '|R{SSM}|'
         else:
-            # als we geen DRM hebben, pak dan de hls dodec. Deze werkt ook op Kodi met oude filmpjes b.v. 2011 POW_00398490 (We zijn er bijna)
+            # als we geen DRM hebben, pak dan de hls profile. Deze werkt ook op Kodi met oude filmpjes b.v. 2011 POW_00398490 (We zijn er bijna)
             return self.get_json_data(url, NpoHelpers.__get_video_request_data('hls'))
         return data_dash
 

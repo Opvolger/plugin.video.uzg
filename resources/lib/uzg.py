@@ -137,9 +137,8 @@ class Uzg:
     def get_play_url(self, whatson_id):
         return self.npoHelpers.get_play_url(whatson_id)
 
-    @staticmethod
-    def get_ondertitel(whatson_id):
-        return 'https://rs.poms.omroep.nl/v1/api/subtitles/'+whatson_id+'/nl_NL/CAPTION.vtt'
+    def get_ondertitel(self, whatson_id):
+        return self.npoHelpers.get_subtitles(whatson_id)
 
     @staticmethod
     def __rebuild_item(item):    

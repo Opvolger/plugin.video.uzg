@@ -125,27 +125,24 @@ def add_video_items(videoitems):
         list_item.setInfo('video', video['video'])
         list_item.setArt(video['art'])
         list_item.setProperty('IsPlayable', 'true')
-        list_item.setSubtitles([Uzg.get_ondertitel(video['whatson_id'])])
         url = get_url(action='play', whatson_id=video['whatson_id'])
         is_folder = False
         xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
 
 def play_video(whatson_id):
+    subtitle = uzg.get_ondertitel(whatson_id)
     stream_info = uzg.get_play_url(whatson_id)
+    playitem = xbmcgui.ListItem(path=stream_info['url'])
+    if (subtitle != None and xbmcplugin.getSetting(_handle, "subtitle") == 'true'):
+        playitem.setSubtitles([subtitle])
     if (stream_info['drm']):
         is_helper = inputstreamhelper.Helper(PROTOCOL, DRM) #drm=stream_info['drm'])
         if is_helper.check_inputstream():
-            playitem = xbmcgui.ListItem(path=stream_info['url'])
             playitem.setProperty('inputstreamaddon', is_helper.inputstream_addon)
             playitem.setProperty('inputstream.adaptive.manifest_type', PROTOCOL)
             playitem.setProperty('inputstream.adaptive.license_type', DRM) #stream_info['drm'])
             playitem.setProperty('inputstream.adaptive.license_key', stream_info['license_key'])
-    else:
-        playitem = xbmcgui.ListItem(path=stream_info['url'])
     xbmcplugin.setResolvedUrl(_handle, True, listitem=playitem)
-    if (xbmcplugin.getSetting(_handle, "subtitle") != 'true'):
-    	disable_subtitle()
-
 
 def router(paramstring):
     params = dict(parse_qsl(paramstring))
@@ -163,16 +160,6 @@ def router(paramstring):
     else:
         list_overzicht()
         setMediaView()
-
-def disable_subtitle():
-	player = xbmc.Player()
-	for _ in range(30):
-		if player.isPlaying():
-			break
-		time.sleep(1)
-	else:
-		raise Exception('No video playing. Aborted after 30 seconds.')
-	player.showSubtitles(0)
 
 if __name__ == '__main__':
     router(sys.argv[2][1:])
