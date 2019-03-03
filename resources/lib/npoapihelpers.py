@@ -1,6 +1,7 @@
 import json
 import re
 from resources.lib.zone import Zone
+from resources.lib.jsonhelper import ToJsonObject
 from datetime import datetime, tzinfo, timedelta
 import time
 import sys
@@ -16,36 +17,35 @@ else:
     
 class NpoHelpers():
 
-    def get_json_data(self, url):
+    def get_json_data(self, url, data=None):
         req = Request(url)
         req.add_header('User-Agent', 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0')
         req.add_header('ApiKey', 'e45fe473feaf42ad9a215007c6aa5e7e')
-        response = urlopen(req)
+        response = urlopen(req, data)
         link = response.read()
         response.close()
         return json.loads(link)
 
     def get_play_url(self, whatson_id):
-        data = self.__get_data_from_url_post('https://start-api.npo.nl/media/'+whatson_id+'/stream')
-        return data
+        url = 'https://start-api.npo.nl/media/'+whatson_id+'/stream'
+        data_dash = self.get_json_data(url, NpoHelpers.__get_video_request_data('dash'))
+        if (data_dash['drm']):
+            data_dash['license_key'] = data_dash['licenseServer'] +'|X-Custom-Data=' + data_dash['licenseToken'] + '|R{SSM}|'
+        else:
+            # als we geen DRM hebben, pak dan de hls dodec. Deze werkt ook op Kodi met oude filmpjes b.v. 2011 POW_00398490 (We zijn er bijna)
+            return self.get_json_data(url, NpoHelpers.__get_video_request_data('hls'))
+        return data_dash
 
-    def __get_data_from_url_post(self, url):
-        # profile: smooth = ism = playready
-        # profile: dash = mpd = widevine
-        payload = "{\"profile\": \"dash\", \"options\": {\"startOver\": true}, \"hasSubscription\": false, \"hasPremiumSubscription\": false, \"platform\": \"npo\"}"
-        req = Request(url)
-        req.add_header('User-Agent', 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/26.0')
-        req.add_header('Content-Type', 'application/json; charset=utf-8')
-        req.add_header('ApiKey', 'e45fe473feaf42ad9a215007c6aa5e7e')
-        req.add_header('Cache-Control', 'no-cache')
-        jsondataasbytes = payload.encode('utf-8')   # needs to be bytes
-        response = urlopen(req, jsondataasbytes)
-        re = response.read()
-        data = json.loads(re)
-        if (data['drm']):
-            data['license_key'] = data['licenseServer'] +'|X-Custom-Data=' + data['licenseToken'] + '|R{SSM}|'
-        response.close()
-        return data
+    @staticmethod
+    def __get_video_request_data(profile):
+        data = ToJsonObject()
+        data.profile = profile
+        data.options = ToJsonObject()
+        data.options.startOver = True
+        data.options.hasSubscription = False
+        data.options.hasPremiumSubscription = False
+        data.options.platform = 'npo'
+        return data.toJSON().encode('utf-8')
 
     @staticmethod
     def get_page_count(data):

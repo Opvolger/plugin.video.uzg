@@ -29,12 +29,12 @@ class Uzg:
     def episodesOrseason(self, link):
         if ('episodes?seasonId' in link):
             # we hebben te maken met items onder een season, deze kunnen gelijk terug.
-            return self.__get_episodesitems(self.npoHelpers.get_json_data(link))
+            return self.__get_episodesitems(self.npoHelpers.get_json_data(link, None))
         if ('/media/series/' in link and '?page=' in link):
             # we hebben met een next page te maken
-            return self.__get_episodesitems(self.npoHelpers.get_json_data(link))
+            return self.__get_episodesitems(self.npoHelpers.get_json_data(link, None))
         # we gaan uitvragen wat we hebben, zodat we kunnen zien wat we moeten doen.
-        data = self.npoHelpers.get_json_data(link)
+        data = self.npoHelpers.get_json_data(link, None)
         series_id = ''
         for component in data['components']:
             # dit is de eerste dus word netjes gevuld in de for loop
