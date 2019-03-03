@@ -11,5 +11,5 @@ Buy me a beer / betaal een biertje voor mij
 ------------------------------------------
 [![Donate-Ideal](https://img.shields.io/badge/Donate-Ideal-green.svg)](https://www.bunq.me/opvolger)
 
-Thnx for the beer / bedankt voor de mogelijkheden dat ik een biertje kan kopen voor tijdens het programeren:
-Ernst A.
+Deze addon werkt sinds de aanpassing van NPO alleen nog maar op Kodi 18.x en later!
+Alleen alles vanaf versie 3.2.0 werkt nog na 27 feb. 2019.
