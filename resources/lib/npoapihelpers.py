@@ -20,6 +20,7 @@ class NpoHelpers():
     def get_json_data(self, url, data=None):
         req = Request(url)
         req.add_header('User-Agent', 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0')
+        req.add_header('Content-Type', 'application/json; charset=utf-8')
         req.add_header('ApiKey', 'e45fe473feaf42ad9a215007c6aa5e7e')
         response = urlopen(req, data)
         link = response.read()
@@ -53,8 +54,6 @@ class NpoHelpers():
         data.profile = profile
         data.options = ToJsonObject()
         data.options.startOver = True
-        data.options.hasSubscription = False
-        data.options.hasPremiumSubscription = False
         data.options.platform = 'npo'
         return data.toJSON().encode('utf-8')
 
