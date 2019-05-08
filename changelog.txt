@@ -1,4 +1,7 @@
-﻿Version 3.3.3
+﻿Version 3.4.0
+* Refactor and fix loaden all titles in cancel search.
+
+Version 3.3.3
 * Api old video's working agian
 * Subtitles can be disabled agian in Kodi 18
 
