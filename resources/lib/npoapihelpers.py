@@ -1,9 +1,6 @@
 import json
 import re
-from resources.lib.zone import Zone
 from resources.lib.jsonhelper import ToJsonObject
-from datetime import datetime, tzinfo, timedelta
-import time
 import sys
 
 if (sys.version_info[0] == 3):
@@ -60,22 +57,6 @@ class NpoHelpers():
         data.options.startOver = True
         data.options.platform = 'npo'
         return data.toJSON().encode('utf-8')
-
-    @staticmethod
-    def get_page_count(data):
-        return (data['total'] // 20) + (data['total'] % 20)
-
-    @staticmethod
-    def get_dateitem(datumstring):
-        try:
-            datetimevalue = datetime.strptime(
-                datumstring, "%Y-%m-%dT%H:%M:%SZ")
-        except TypeError:
-            datetimevalue = datetime(
-                *(time.strptime(datumstring, "%Y-%m-%dT%H:%M:%SZ")[0:6]))
-        UTC = Zone(+0, False, 'UTC')
-        datetimevalue = datetimevalue.replace(tzinfo=UTC)
-        return datetimevalue
 
     @staticmethod
     def get_image(item):

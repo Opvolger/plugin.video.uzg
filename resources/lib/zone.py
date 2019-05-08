@@ -1,4 +1,4 @@
-from datetime import datetime, tzinfo, timedelta
+from datetime import tzinfo, timedelta
 
 
 class Zone(tzinfo):

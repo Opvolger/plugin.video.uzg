@@ -10,8 +10,7 @@
 
 '''
 from resources.lib.npoapihelpers import NpoHelpers
-from resources.lib.npoepisodesitem import NpoEpisodesItem
-
+from resources.lib.npoapiclasses import SerieItems, EpisodesItems
 
 class Uzg:
     def __init__(self):
@@ -19,23 +18,21 @@ class Uzg:
 
     def getQueryPage(self, tekst):
         # default is page 1
-        url = 'https://start-api.npo.nl/media/series?query=' + tekst
-        return self.__getPage(url)
+        return SerieItems('https://start-api.npo.nl/media/series?query=' + tekst).uzgitemlist
 
     def getAZPage(self, letter):
         # default is page 1
-        urlAz = 'https://start-api.npo.nl/media/series?az=' + letter
-        return self.__getPage(urlAz)
+        return SerieItems('https://start-api.npo.nl/media/series?az=' + letter).uzgitemlist
 
-    def episodesOrseason(self, link):
-        if ('episodes?seasonId' in link):
+    def episodesOrseason(self, url):
+        if ('episodes?seasonId' in url):
             # we hebben te maken met items onder een season, deze kunnen gelijk terug.
-            return self.__get_episodesitems(self.npoHelpers.get_json_data(link, None))
-        if ('/media/series/' in link and '?page=' in link):
+            return EpisodesItems(url=url).get_episodes_info_and_items()
+        if ('/media/series/' in url and '?page=' in url):
             # we hebben met een next page te maken
-            return self.__get_episodesitems(self.npoHelpers.get_json_data(link, None))
+            return EpisodesItems(url=url).get_episodes_info_and_items()
         # we gaan uitvragen wat we hebben, zodat we kunnen zien wat we moeten doen.
-        data = self.npoHelpers.get_json_data(link, None)
+        data = self.npoHelpers.get_json_data(url, None)
         series_id = ''
         for component in data['components']:
             # dit is de eerste dus word netjes gevuld in de for loop
@@ -45,7 +42,7 @@ class Uzg:
             if ((component['type'] == 'grid') and (component['id'] == 'grid-episodes')):
                 if (component['filter'] is None):
                     # geen filter = afleveringen
-                    return self.__get_episodesitems(component['data'])
+                    return EpisodesItems(json=component['data']).get_episodes_info_and_items()
                 else:
                     # we hebben een filter, we maken een season overzicht
                     # ['filter']['options'] bevat de seasons welke er zijn. (b.v. "2018", "2017" enz.)
@@ -53,28 +50,10 @@ class Uzg:
                     return {'type': 'season',
                             'items': self.__season(component['filter']['options'], series_id)}
         # we hebben niks gevonden, dus stuur maar een lege lijst terug
-        return {'type': 'episodes',
-                'items': list(),
-                'linknext': None}
-
-    def __get_episodesitems(self, data):
-        linknext = None
-        if (data['_links'].get('next')):
-            linknext = data['_links']['next']['href']
-        return {'type': 'episodes',
-                'items': self.__episodes(data['items']),
-                'linknext': linknext}
-
-    def __getAZItems(self, data):
-        uzgitemlist = list()
-        items = data['items']
-        for serie in items:
-            # alleen series (todo andere content)
-            if (serie['type'] == 'series'):
-                uzgitemlist.append(self.get_serie_item(serie))
-        return uzgitemlist
+        return EpisodesItems().get_episodes_info_and_items()
 
     def __season(self, options, series_id):
+        # todo deze moet nog wat netter worden en verhuizen naar npoapiclasses.py
         uzgitemlist = list()
         for seasonfiler in options:
             # url nu nog samengesteld, netter om uit api te halen.
@@ -84,73 +63,9 @@ class Uzg:
             uzgitemlist.append(uzgitem)
         return uzgitemlist
 
-    def __getPage(self, url):
-        data = self.npoHelpers.get_json_data(url)
-        pages = self.npoHelpers.get_page_count(data)
-        # de eerste hebben we al gehad.
-        uzgitemlist = list()
-        uzgitemlist.extend(self.__getAZItems(data))  # page 1
-        if (pages > 1):
-            for x in range(pages-1):
-                page = x + 2
-                data = self.npoHelpers.get_json_data(
-                    url + '&page=' + str(page))
-                uzgitemlist.extend(self.__getAZItems(data))  # page 2 t/m x
-        sortedlist = sorted(
-            uzgitemlist, key=lambda x: x['label'].upper(), reverse=False)
-        return sortedlist
-
-    def __episodes(self, items):
-        # items of uit season of wel uit franchise (opbouw is gelijk)
-        uzgitemlist = list()
-        for episode in items:
-            # we hebben geen premium/plus account
-            if (episode['isOnlyOnNpoPlus'] == False):
-                uzgitemlist.append(NpoEpisodesItem(episode).get_item())
-        show_time_in_label = False
-        for item in uzgitemlist:
-            for ref in uzgitemlist:
-                if (item['video']['aired'] == ref['video']['aired'] and item['label'] == ref['label'] and item['whatson_id'] != ref['whatson_id']):
-                    # Er zijn meerdere afleveringen op dezelfde dag: toon de tijd in het label.
-                    show_time_in_label = True
-        if (show_time_in_label):
-            # we hebben items op de zelfde dag met de zelfde naam, we proberen er een timestamp voor te zetten:
-            uzgitemlist = [self.__rebuild_item(i) for i in uzgitemlist]
-        return uzgitemlist
-
     def get_play_url(self, whatson_id):
         return self.npoHelpers.get_play_url(whatson_id)
 
     def get_ondertitel(self, whatson_id):
         return self.npoHelpers.get_subtitles(whatson_id)
 
-    @staticmethod
-    def get_serie_item(serie):
-        image = NpoHelpers.get_image(serie)
-        return {
-            'label': serie['title'],
-            'art': {'thumb': image,
-                    'icon':  image,
-                    'fanart': image},
-            'video': {
-                'title': serie['title'],
-                'plot': serie['description'],
-                'studio': NpoHelpers.get_studio(serie),
-                'genre': NpoHelpers.get_genres(serie),
-                'mediatype': 'video'},
-            'nebo_id': serie['id'],
-            'apilink': serie['_links']['page']['href']
-        }
-
-    @staticmethod
-    def __rebuild_item(item):
-        # item op tijd gesorteerd zodat ze op volgorde staan en verschil is te zien
-        titelnaam = item['label']
-        if (titelnaam is None):
-            titelnaam = ''
-        if (item['timestamp'] is not None):
-            titelnaam += ' (' + item['timestamp'] + ')'
-
-        item['label'] = titelnaam
-        item['video']['title'] = titelnaam
-        return item
