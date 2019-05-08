@@ -8,6 +8,11 @@
     Uitzendinggemist(NPO) / uzg = Made by Bas Magre (Opvolger)
     
 '''
+import xbmcaddon
+import xbmcgui
+import xbmcplugin
+import inputstreamhelper
+import time
 from resources.lib.uzg import Uzg
 
 import sys
@@ -15,7 +20,7 @@ if (sys.version_info[0] == 3):
     # For Python 3.0 and later
     from urllib.parse import urlencode
     from urllib.parse import parse_qsl
-    import storageserverdummy as StorageServer  
+    import storageserverdummy as StorageServer
 else:
     # Fall back to Python 2's urllib2
     from urllib import urlencode
@@ -25,9 +30,6 @@ else:
     except:
         import storageserverdummy as StorageServer
 
-import time
-import xbmcplugin, xbmcgui, xbmcaddon
-import inputstreamhelper
 
 PROTOCOL = 'mpd'
 DRM = 'com.widevine.alpha'
@@ -39,12 +41,16 @@ uzg = Uzg()
 
 _url = sys.argv[0]
 _handle = int(sys.argv[1])
-_cache = StorageServer.StorageServer(PLUGIN_ID, 24) # (Your plugin name, Cache time in hours)
+# (Your plugin name, Cache time in hours)
+_cache = StorageServer.StorageServer(PLUGIN_ID, 24)
 _addon = xbmcaddon.Addon()
 
 # het in elkaar klussen van een url welke weer gebruikt word bij router
+
+
 def get_url(**kwargs):
     return '{0}?{1}'.format(_url, urlencode(kwargs))
+
 
 def setMediaView():
     # juiste skin selecteren alleen voor confluence maar die gebruikik prive nog steeds
@@ -55,7 +61,8 @@ def setMediaView():
         if 'onfluence' in skinTheme:
             xbmc.executebuiltin('Container.SetViewMode(504)')
     except:
-        pass 
+        pass
+
 
 def list_overzicht():
     xbmcplugin.setPluginCategory(_handle, 'Uitzendinggemist (NPO)')
@@ -67,21 +74,23 @@ def list_overzicht():
         xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
     xbmcplugin.endOfDirectory(_handle)
 
+
 def list_letter(letter):
     xbmcplugin.setPluginCategory(_handle, 'Uitzendinggemist (NPO)')
     xbmcplugin.setContent(_handle, 'videos')
     if (letter == '?'):
         dialog = xbmcgui.Dialog()
-        d = dialog.input(_addon.getLocalizedString(32004), type=xbmcgui.INPUT_ALPHANUM)
+        d = dialog.input(_addon.getLocalizedString(
+            32004), type=xbmcgui.INPUT_ALPHANUM)
         # ophalen query
         if d:
-            franchises = _cache.cacheFunction(uzg.getQueryPage,d)
+            franchises = _cache.cacheFunction(uzg.getQueryPage, d)
         else:
             # niks ingevoerd of cancel is opgetreden
             franchises = list()
     else:
         # ophalen franchises aan de hand van een "letter"
-        franchises = _cache.cacheFunction(uzg.getAZPage,letter)
+        franchises = _cache.cacheFunction(uzg.getAZPage, letter)
     for franchise in franchises:
         list_item = xbmcgui.ListItem(label=franchise['label'])
         list_item.setArt(franchise['art'])
@@ -92,9 +101,10 @@ def list_letter(letter):
     xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
     xbmcplugin.endOfDirectory(_handle)
 
+
 def list_franchise(link):
     xbmcplugin.setPluginCategory(_handle, link)
-    #enable media info viewtype zodat "plot" van een aflevering ook getoond kan worden (indien gewenst)
+    # enable media info viewtype zodat "plot" van een aflevering ook getoond kan worden (indien gewenst)
     xbmcplugin.setContent(_handle, 'movies')
     episodesOrseason = uzg.episodesOrseason(link)
     if (episodesOrseason['type'] == 'episodes'):
@@ -102,17 +112,20 @@ def list_franchise(link):
         add_video_items(episodesOrseason['items'])
         # next 20 afleveringen
         if (episodesOrseason['linknext'] is not None):
-            list_item = xbmcgui.ListItem(label='. -- ' + _addon.getLocalizedString(32003) + ' -- .')
+            list_item = xbmcgui.ListItem(
+                label='. -- ' + _addon.getLocalizedString(32003) + ' -- .')
             list_item.setProperty('IsPlayable', 'false')
             url = get_url(action='episodes', link=episodesOrseason['linknext'])
             is_folder = True
             xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
         xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_DATE)
-        xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
+        xbmcplugin.addSortMethod(
+            _handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
     else:
         # het zijn seasons, we hebben dus een sub-level "seasons" nodig
         add_season_items(episodesOrseason['items'])
     xbmcplugin.endOfDirectory(_handle)
+
 
 def add_season_items(seasonitems):
     for seasonitem in seasonitems:
@@ -120,7 +133,8 @@ def add_season_items(seasonitems):
         list_item = xbmcgui.ListItem(label=seasonitem['label'])
         url = get_url(action='episodes', link=seasonitem['link'])
         is_folder = True
-        xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)  
+        xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
+
 
 def add_video_items(videoitems):
     for video in videoitems:
@@ -133,6 +147,7 @@ def add_video_items(videoitems):
         is_folder = False
         xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
 
+
 def play_video(whatson_id):
     subtitle = uzg.get_ondertitel(whatson_id)
     stream_info = uzg.get_play_url(whatson_id)
@@ -140,13 +155,19 @@ def play_video(whatson_id):
     if (subtitle != None and xbmcplugin.getSetting(_handle, "subtitle") == 'true'):
         playitem.setSubtitles([subtitle])
     if (stream_info['drm']):
-        is_helper = inputstreamhelper.Helper(PROTOCOL, DRM) #drm=stream_info['drm'])
+        is_helper = inputstreamhelper.Helper(
+            PROTOCOL, DRM)  # drm=stream_info['drm'])
         if is_helper.check_inputstream():
-            playitem.setProperty('inputstreamaddon', is_helper.inputstream_addon)
-            playitem.setProperty('inputstream.adaptive.manifest_type', PROTOCOL)
-            playitem.setProperty('inputstream.adaptive.license_type', DRM) #stream_info['drm'])
-            playitem.setProperty('inputstream.adaptive.license_key', stream_info['license_key'])
+            playitem.setProperty('inputstreamaddon',
+                                 is_helper.inputstream_addon)
+            playitem.setProperty(
+                'inputstream.adaptive.manifest_type', PROTOCOL)
+            # stream_info['drm'])
+            playitem.setProperty('inputstream.adaptive.license_type', DRM)
+            playitem.setProperty(
+                'inputstream.adaptive.license_key', stream_info['license_key'])
     xbmcplugin.setResolvedUrl(_handle, True, listitem=playitem)
+
 
 def router(paramstring):
     params = dict(parse_qsl(paramstring))
@@ -164,6 +185,7 @@ def router(paramstring):
     else:
         list_overzicht()
         setMediaView()
+
 
 if __name__ == '__main__':
     router(sys.argv[2][1:])
