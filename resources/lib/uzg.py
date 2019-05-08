@@ -12,6 +12,7 @@
 from resources.lib.npoapihelpers import NpoHelpers
 from resources.lib.npoepisodesitem import NpoEpisodesItem
 
+
 class Uzg:
     def __init__(self):
         self.npoHelpers = NpoHelpers()
@@ -49,20 +50,20 @@ class Uzg:
                     # we hebben een filter, we maken een season overzicht
                     # ['filter']['options'] bevat de seasons welke er zijn. (b.v. "2018", "2017" enz.)
                     # series_id = id van serie (b.v. "We zijn er bijna")
-                    return { 'type': 'season',
-                                'items': self.__season(component['filter']['options'], series_id) }
+                    return {'type': 'season',
+                            'items': self.__season(component['filter']['options'], series_id)}
         # we hebben niks gevonden, dus stuur maar een lege lijst terug
-        return { 'type': 'episodes',
-                    'items': list(),
-                    'linknext': None }
-        
+        return {'type': 'episodes',
+                'items': list(),
+                'linknext': None}
+
     def __get_episodesitems(self, data):
         linknext = None
         if (data['_links'].get('next')):
             linknext = data['_links']['next']['href']
-        return { 'type': 'episodes',
-                    'items': self.__episodes(data['items']),
-                    'linknext': linknext }
+        return {'type': 'episodes',
+                'items': self.__episodes(data['items']),
+                'linknext': linknext}
 
     def __getAZItems(self, data):
         uzgitemlist = list()
@@ -70,31 +71,16 @@ class Uzg:
         for serie in items:
             # alleen series (todo andere content)
             if (serie['type'] == 'series'):
-                image = NpoHelpers.get_image(serie)
-                uzgitem = {
-                    'label': serie['title']
-                    , 'art': {  'thumb': image,
-                                'icon':  image,
-                                'fanart': image }
-                    , 'video': {
-                                'title': serie['title'],
-                                'plot': serie['description'],
-                                'studio': NpoHelpers.get_studio(serie),
-                                'genre': NpoHelpers.get_genres(serie),
-                                'mediatype': 'video' } 
-                    ,'nebo_id': serie['id']
-                    ,'apilink': serie['_links']['page']['href']
-                }
-                uzgitemlist.append(uzgitem)
+                uzgitemlist.append(self.get_serie_item(serie))
         return uzgitemlist
 
     def __season(self, options, series_id):
         uzgitemlist = list()
         for seasonfiler in options:
             # url nu nog samengesteld, netter om uit api te halen.
-            url = 'https://start-api.npo.nl/media/series/'+ series_id  +'/episodes?seasonId=' + seasonfiler['value']
-            uzgitem = { 'label': seasonfiler['display']
-                        , 'link': url }
+            url = 'https://start-api.npo.nl/media/series/' + \
+                series_id + '/episodes?seasonId=' + seasonfiler['value']
+            uzgitem = {'label': seasonfiler['display'], 'link': url}
             uzgitemlist.append(uzgitem)
         return uzgitemlist
 
@@ -103,27 +89,24 @@ class Uzg:
         pages = self.npoHelpers.get_page_count(data)
         # de eerste hebben we al gehad.
         uzgitemlist = list()
-        uzgitemlist.extend(self.__getAZItems(data)) # page 1
+        uzgitemlist.extend(self.__getAZItems(data))  # page 1
         if (pages > 1):
             for x in range(pages-1):
                 page = x + 2
-                data = self.npoHelpers.get_json_data(url + '&page=' + str(page))
-                uzgitemlist.extend(self.__getAZItems(data)) #page 2 t/m x                   
-        sortedlist = sorted(uzgitemlist, key=lambda x: x['label'].upper(), reverse=False)
+                data = self.npoHelpers.get_json_data(
+                    url + '&page=' + str(page))
+                uzgitemlist.extend(self.__getAZItems(data))  # page 2 t/m x
+        sortedlist = sorted(
+            uzgitemlist, key=lambda x: x['label'].upper(), reverse=False)
         return sortedlist
 
     def __episodes(self, items):
-        #items of uit season of wel uit franchise (opbouw is gelijk)
+        # items of uit season of wel uit franchise (opbouw is gelijk)
         uzgitemlist = list()
         for episode in items:
+            # we hebben geen premium/plus account
             if (episode['isOnlyOnNpoPlus'] == False):
-                episodedata = NpoEpisodesItem(episode)
-                uzgitem = { 'label': episodedata.get_label()
-                            , 'art': episodedata.get_art()
-                            , 'video': episodedata.get_video()
-                            , 'timestamp': episodedata.get_timestamp()
-                            , 'whatson_id': episode['id']}
-                uzgitemlist.append(uzgitem)
+                uzgitemlist.append(NpoEpisodesItem(episode).get_item())
         show_time_in_label = False
         for item in uzgitemlist:
             for ref in uzgitemlist:
@@ -131,6 +114,7 @@ class Uzg:
                     # Er zijn meerdere afleveringen op dezelfde dag: toon de tijd in het label.
                     show_time_in_label = True
         if (show_time_in_label):
+            # we hebben items op de zelfde dag met de zelfde naam, we proberen er een timestamp voor te zetten:
             uzgitemlist = [self.__rebuild_item(i) for i in uzgitemlist]
         return uzgitemlist
 
@@ -141,12 +125,30 @@ class Uzg:
         return self.npoHelpers.get_subtitles(whatson_id)
 
     @staticmethod
-    def __rebuild_item(item):    
-        ##item op tijd gesorteerd zodat ze op volgorde staan en verschil is te zien
+    def get_serie_item(serie):
+        image = NpoHelpers.get_image(serie)
+        return {
+            'label': serie['title'],
+            'art': {'thumb': image,
+                    'icon':  image,
+                    'fanart': image},
+            'video': {
+                'title': serie['title'],
+                'plot': serie['description'],
+                'studio': NpoHelpers.get_studio(serie),
+                'genre': NpoHelpers.get_genres(serie),
+                'mediatype': 'video'},
+            'nebo_id': serie['id'],
+            'apilink': serie['_links']['page']['href']
+        }
+
+    @staticmethod
+    def __rebuild_item(item):
+        # item op tijd gesorteerd zodat ze op volgorde staan en verschil is te zien
         titelnaam = item['label']
         if (titelnaam is None):
             titelnaam = ''
-        if (item['timestamp'] is not None ):
+        if (item['timestamp'] is not None):
             titelnaam += ' (' + item['timestamp'] + ')'
 
         item['label'] = titelnaam

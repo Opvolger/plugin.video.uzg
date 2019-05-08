@@ -74,7 +74,11 @@ def list_letter(letter):
         dialog = xbmcgui.Dialog()
         d = dialog.input(_addon.getLocalizedString(32004), type=xbmcgui.INPUT_ALPHANUM)
         # ophalen query
-        franchises = _cache.cacheFunction(uzg.getQueryPage,d)
+        if d:
+            franchises = _cache.cacheFunction(uzg.getQueryPage,d)
+        else:
+            # niks ingevoerd of cancel is opgetreden
+            franchises = list()
     else:
         # ophalen franchises aan de hand van een "letter"
         franchises = _cache.cacheFunction(uzg.getAZPage,letter)

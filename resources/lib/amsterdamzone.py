@@ -1,5 +1,6 @@
-from datetime import datetime,tzinfo,timedelta
+from datetime import datetime, tzinfo, timedelta
 import time
+
 
 class AmsterdamZone(tzinfo):
     def __init__(self, date):
@@ -40,15 +41,20 @@ class AmsterdamZone(tzinfo):
             self.isdst = True
         # Hier zal de zomer en wintertijd wel zijn afgeschaft :)
         self.name = 'Europe/Amsterdam'
+
     def utcoffset(self, dt):
         return timedelta(hours=self.offset) + self.dst(dt)
+
     def dst(self, dt):
-            return timedelta(hours=1) if self.isdst else timedelta(0)
-    def tzname(self,dt):
+        return timedelta(hours=1) if self.isdst else timedelta(0)
+
+    def tzname(self, dt):
         return self.name
+
     def dateitem(self, datumstring):
         try:
             datetimevalue = datetime.strptime(datumstring, "%Y-%m-%d %H:%M:%S")
         except TypeError:
-            datetimevalue = datetime(*(time.strptime(datumstring, "%Y-%m-%d %H:%M:%S")[0:6]))
+            datetimevalue = datetime(
+                *(time.strptime(datumstring, "%Y-%m-%d %H:%M:%S")[0:6]))
         return datetimevalue
