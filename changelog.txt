@@ -1,4 +1,7 @@
-﻿Version 3.4.0
+﻿Version 3.4.1
+* script.module.inputstreamhelper to 0.3.5
+
+Version 3.4.0
 * Refactor and fix loaden all titles in cancel search.
 
 Version 3.3.3
