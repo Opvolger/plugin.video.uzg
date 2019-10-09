@@ -1,4 +1,7 @@
-﻿Version 3.4.1
+﻿Version 3.4.2
+* api-key was aangepast.
+
+Version 3.4.1
 * script.module.inputstreamhelper to 0.3.5
 
 Version 3.4.0

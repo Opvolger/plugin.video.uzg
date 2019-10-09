@@ -20,7 +20,7 @@ class NpoHelpers():
         req.add_header(
             'User-Agent', 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0')
         req.add_header('Content-Type', 'application/json; charset=utf-8')
-        req.add_header('ApiKey', 'e45fe473feaf42ad9a215007c6aa5e7e')
+        req.add_header('ApiKey', '07896f1ee72645f68bc75581d7f00d54')
         response = urlopen(req, data)
         link = response.read()
         response.close()
