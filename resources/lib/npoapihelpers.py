@@ -61,16 +61,17 @@ class NpoHelpers():
     @staticmethod
     def get_image(item):
         thumbnail = ''
-        if item['images'] and item['images']['original']:
-            if (item['images']['original']['formats'].get('original') is not None):
-                thumbnail = item['images']['original']['formats']['original']['source']
-            if (item['images']['original']['formats'].get('tv') is not None):
-                thumbnail = item['images']['original']['formats']['tv']['source']
+        if item['images'] and item['images']['grid.tile']:
+            if (item['images']['grid.tile']['formats'].get('web') is not None):
+                thumbnail = item['images']['grid.tile']['formats']['web']['source']
+            if (item['images']['grid.tile']['formats'].get('tv') is not None):
+                thumbnail = item['images']['grid.tile']['formats']['tv']['source']
         return thumbnail
 
     @staticmethod
     def get_studio(item):
-        return ', '.join(item['broadcasters'])
+        if (item['broadcasters'] is not None):
+            return ', '.join(item['broadcasters'])
 
     @staticmethod
     def get_genres(item):
