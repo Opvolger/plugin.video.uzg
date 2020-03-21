@@ -1,4 +1,7 @@
-﻿Version 3.4.2
+﻿Version 3.5.0
+* api-changes
+
+Version 3.4.2
 * api-key was aangepast.
 
 Version 3.4.1
