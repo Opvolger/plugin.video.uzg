@@ -61,16 +61,23 @@ class NpoHelpers():
     @staticmethod
     def get_image(item):
         thumbnail = ''
-        if item['images'] and item['images']['original']:
-            if (item['images']['original']['formats'].get('original') is not None):
-                thumbnail = item['images']['original']['formats']['original']['source']
-            if (item['images']['original']['formats'].get('tv') is not None):
-                thumbnail = item['images']['original']['formats']['tv']['source']
+        if item['images'] and item['images'].get('chromecast.post-play') and item['images']['chromecast.post-play']:
+            if (item['images']['chromecast.post-play']['formats'].get('tv-expanded') is not None):
+                thumbnail = item['images']['chromecast.post-play']['formats']['tv-expanded']['source']
+            if thumbnail == '' and (item['images']['chromecast.post-play']['formats'].get('tv') is not None):
+                thumbnail = item['images']['chromecast.post-play']['formats']['tv']['source']
+        if thumbnail == '' and item['images'] and item['images'].get('grid.tile') and item['images']['grid.tile']:
+            if (item['images']['grid.tile']['formats'].get('tv') is not None):
+                thumbnail = item['images']['grid.tile']['formats']['tv']['source']      
+            if (item['images']['grid.tile']['formats'].get('tv-expanded') is not None):
+                thumbnail = item['images']['grid.tile']['formats']['tv-expanded']['source']                
         return thumbnail
 
     @staticmethod
     def get_studio(item):
-        return ', '.join(item['broadcasters'])
+        if item['broadcasters']:
+            return ', '.join(item['broadcasters'])
+        return ''
 
     @staticmethod
     def get_genres(item):
