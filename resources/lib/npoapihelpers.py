@@ -70,8 +70,10 @@ class NpoHelpers():
 
     @staticmethod
     def get_studio(item):
+        broadcasters = ''
         if (item['broadcasters'] is not None):
-            return ', '.join(item['broadcasters'])
+            broadcasters = ', '.join(item['broadcasters'])
+        return broadcasters
 
     @staticmethod
     def get_genres(item):
