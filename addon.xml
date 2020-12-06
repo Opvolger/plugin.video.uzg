@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.uzg" name="Uitzendinggemist (NPO)" provider-name="Bas Magré (Opvolger)" version="3.5.0">
+<addon id="plugin.video.uzg" name="NPO start" provider-name="Bas Magré (Opvolger)" version="3.5.0">
   <requires>
     <import addon="xbmc.python" version="2.25.0" />
     <import addon="script.module.inputstreamhelper" version="0.3.5" />
@@ -15,9 +15,9 @@
     <language>nl</language>
     <platform>all</platform>
     <source>https://github.com/Opvolger/plugin.video.uzg</source>
-    <summary lang="en">Uitzendinggemist (NPO) - Watch free videos from Uitzendinggemist (only with a dutch ip-address)</summary>
-    <summary lang="nl">Uitzendinggemist (NPO) - Bekijk gratis videos van Uitzendinggemist (alleen met nederlands ip-adres)</summary>
-    <description lang="en">Dutch Uitzendinggemist (NPO) videos NED1 / NED2 / NED3 (only with a dutch ip-address)</description>
-    <description lang="nl">Uitzendinggemist (NPO), videos van NED1 / NED2 / NED3 (werkt alleen met nederlands ip-adres)</description>
+    <summary lang="en">NPO start - Watch free videos from Uitzendinggemist (only with a dutch ip-address)</summary>
+    <summary lang="nl">NPO start - Bekijk gratis videos van Uitzendinggemist (alleen met nederlands ip-adres)</summary>
+    <description lang="en">Dutch NPO start videos NED1 / NED2 / NED3 (only with a dutch ip-address)</description>
+    <description lang="nl">NPO start, videos van NED1 / NED2 / NED3 (werkt alleen met nederlands ip-adres)</description>
   </extension>
 </addon>

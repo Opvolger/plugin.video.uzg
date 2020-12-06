@@ -9,16 +9,24 @@
     Uitzendinggemist (NPO) = Made by Bas Magre (Opvolger)    
 
 '''
+import xbmc
+
 from resources.lib.npoapihelpers import NpoHelpers
-from resources.lib.npoapiclasses import SerieItems, EpisodesItems
+from resources.lib.npoapiclasses import SerieItems, EpisodesItems, Channels
 
 class Uzg:
     def __init__(self):
         self.npoHelpers = NpoHelpers()
 
+    #def getLivePage(self):
+    #    return LiveItems('https://start-api.npo.nl/page/live').uzgitemlist
+
+    def getChannels(self):
+        return Channels('https://start-api.npo.nl/channel').uzgitemlist
+
     def getQueryPage(self, tekst):
         # default is page 1
-        return SerieItems('https://start-api.npo.nl/media/series?query=' + tekst).uzgitemlist
+        return SerieItems('https://start-api.npo.nl/search?query=' + tekst).uzgitemlist
 
     def getAZPage(self, letter):
         # default is page 1
