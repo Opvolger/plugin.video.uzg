@@ -1,11 +1,11 @@
 '''
-    Uitzendinggemist(NPO)
+    NPO Start
     ~~~~~~~
 
     An XBMC addon for watching uzg 
     :license: GPLv3, see LICENSE.txt for more details.
 
-    Uitzendinggemist(NPO) / uzg = Made by Bas Magre (Opvolger)
+    NPO Start / uzg = Made by Bas Magre (Opvolger)
     
 '''
 import xbmcaddon
@@ -14,6 +14,8 @@ import xbmcplugin
 import inputstreamhelper
 import time
 from resources.lib.uzg import Uzg
+
+import json
 
 import sys
 if (sys.version_info[0] == 3):
@@ -53,7 +55,7 @@ def get_url(**kwargs):
 
 
 def setMediaView():
-    # juiste skin selecteren alleen voor confluence maar die gebruikik prive nog steeds
+    # juiste skin selecteren alleen voor confluence maar die gebruik ik prive nog steeds
     try:
         kodiVersion = xbmc.getInfoLabel('System.BuildVersion').split()[0]
         kodiVersion = kodiVersion.split('.')[0]
@@ -63,45 +65,66 @@ def setMediaView():
     except:
         pass
 
-
-def list_overzicht():
-    xbmcplugin.setPluginCategory(_handle, 'Uitzendinggemist (NPO)')
-    # Alle mogelijke "begin" "letters"
-    for letter in ['?', '0-9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']:
-        list_item = xbmcgui.ListItem(label=letter)
-        url = get_url(action='letter', letter=letter)
+def home_menu():
+    xbmcplugin.setPluginCategory(_handle, 'NPO Start')
+    for category in ['Live kanalen','Zoeken', 'Letters']:
+        list_item = xbmcgui.ListItem(label=category)
+        url = get_url(action='letter', letter=category)
         is_folder = True
         xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
     xbmcplugin.endOfDirectory(_handle)
 
-
 def list_letter(letter):
-    xbmcplugin.setPluginCategory(_handle, 'Uitzendinggemist (NPO)')
+    xbmcplugin.setPluginCategory(_handle, letter)
     xbmcplugin.setContent(_handle, 'videos')
-    if (letter == '?'):
+    franchises = list()
+    videos = list()
+
+    if( letter == 'Live kanalen'):
+        videos = _cache.cacheFunction(uzg.getChannels)
+        
+    elif (letter == 'Zoeken'):
         dialog = xbmcgui.Dialog()
-        d = dialog.input(_addon.getLocalizedString(
-            32004), type=xbmcgui.INPUT_ALPHANUM)
+        d = dialog.input(_addon.getLocalizedString(32004), type=xbmcgui.INPUT_ALPHANUM)
         # ophalen query
+        #are_franchise = True;
         if d:
             franchises = _cache.cacheFunction(uzg.getQueryPage, d)
         else:
             # niks ingevoerd of cancel is opgetreden
             franchises = list()
+    elif(letter == 'Letters'):
+        list_overzicht()
+
     else:
         # ophalen franchises aan de hand van een "letter"
         franchises = _cache.cacheFunction(uzg.getAZPage, letter)
-    for franchise in franchises:
-        list_item = xbmcgui.ListItem(label=franchise['label'])
-        list_item.setArt(franchise['art'])
-        list_item.setInfo('video', franchise['video'])
-        url = get_url(action='episodes', link=franchise['apilink'])
-        is_folder = True
-        xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
-    xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
+    
+    #displays franchises
+    if franchises:   
+        for franchise in franchises:
+            list_item = xbmcgui.ListItem(label=franchise['label'])
+            list_item.setArt(franchise['art'])
+            list_item.setInfo('video', franchise['video'])
+            url = get_url(action='episodes', link=franchise['apilink'])
+            is_folder = True
+            xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
+        xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
+    elif videos:
+        add_video_items(videos)
+
     xbmcplugin.endOfDirectory(_handle)
 
-
+def list_overzicht():
+    xbmcplugin.setPluginCategory(_handle, 'Letters')
+    # Alle mogelijke "begin" "letters"
+    for letter in ['0-9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']:
+        list_item = xbmcgui.ListItem(label=letter)
+        url = get_url(action='letter', letter=letter)
+        is_folder = True
+        xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
+    xbmcplugin.endOfDirectory(_handle)
+    
 def list_franchise(link):
     xbmcplugin.setPluginCategory(_handle, link)
     # enable media info viewtype zodat "plot" van een aflevering ook getoond kan worden (indien gewenst)
@@ -125,7 +148,6 @@ def list_franchise(link):
         # het zijn seasons, we hebben dus een sub-level "seasons" nodig
         add_season_items(episodesOrseason['items'])
     xbmcplugin.endOfDirectory(_handle)
-
 
 def add_season_items(seasonitems):
     for seasonitem in seasonitems:
@@ -152,20 +174,17 @@ def play_video(whatson_id):
     subtitle = uzg.get_ondertitel(whatson_id)
     stream_info = uzg.get_play_url(whatson_id)
     playitem = xbmcgui.ListItem(path=stream_info['url'])
+
     if (subtitle != None and xbmcplugin.getSetting(_handle, "subtitle") == 'true'):
         playitem.setSubtitles([subtitle])
     if (stream_info['drm']):
-        is_helper = inputstreamhelper.Helper(
-            PROTOCOL, DRM)  # drm=stream_info['drm'])
+        is_helper = inputstreamhelper.Helper(PROTOCOL, DRM)  # drm=stream_info['drm'])
         if is_helper.check_inputstream():
-            playitem.setProperty('inputstreamaddon',
-                                 is_helper.inputstream_addon)
-            playitem.setProperty(
-                'inputstream.adaptive.manifest_type', PROTOCOL)
+            playitem.setProperty('inputstreamaddon', is_helper.inputstream_addon)
+            playitem.setProperty('inputstream.adaptive.manifest_type', PROTOCOL)
             # stream_info['drm'])
             playitem.setProperty('inputstream.adaptive.license_type', DRM)
-            playitem.setProperty(
-                'inputstream.adaptive.license_key', stream_info['license_key'])
+            playitem.setProperty('inputstream.adaptive.license_key', stream_info['license_key'])
     xbmcplugin.setResolvedUrl(_handle, True, listitem=playitem)
 
 
@@ -175,7 +194,6 @@ def router(paramstring):
         if params['action'] == 'letter':
             list_letter(params['letter'])
         elif params['action'] == 'episodes':
-            #xbmc.log('link: ' + params['link'], xbmc.LOGERROR)
             list_franchise(params['link'])
             setMediaView()
         elif params['action'] == 'play':
@@ -183,7 +201,7 @@ def router(paramstring):
         else:
             raise ValueError('Invalid paramstring: {0}!'.format(paramstring))
     else:
-        list_overzicht()
+        home_menu()
         setMediaView()
 
 

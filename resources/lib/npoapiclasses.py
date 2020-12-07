@@ -4,6 +4,8 @@ from resources.lib.zone import Zone
 from datetime import datetime
 import time
 
+import json
+
 class EpisodesItems(object):
     def __init__(self, url = None, json = None):
         if url:
@@ -62,11 +64,9 @@ class NpoEpisodesItem(object):
     @staticmethod
     def get_dateitem(datumstring):
         try:
-            datetimevalue = datetime.strptime(
-                datumstring, "%Y-%m-%dT%H:%M:%SZ")
+            datetimevalue = datetime.strptime(datumstring, "%Y-%m-%dT%H:%M:%SZ")
         except TypeError:
-            datetimevalue = datetime(
-                *(time.strptime(datumstring, "%Y-%m-%dT%H:%M:%SZ")[0:6]))
+            datetimevalue = datetime( *(time.strptime(datumstring, "%Y-%m-%dT%H:%M:%SZ")[0:6]))
         UTC = Zone(+0, False, 'UTC')
         datetimevalue = datetimevalue.replace(tzinfo=UTC) # UTC
         # we hebben een datetime nodig om zomer/wintertijd te kunnen bepalen
@@ -112,7 +112,7 @@ class SerieItems(object):
         self.npoHelpers = NpoHelpers()
         json = self.npoHelpers.get_json_data(url)
         # hier staan de totaal aantal pagina's in.
-        self.page_count = (json['total'] // 20) + (json['total'] % 20)
+        self.page_count = (json['total'] // json['count']) + (json['total'] % json['count']) 
         # we beginnen met de items uit de meegegeven url (page 1)
         self.uzgitemlist = self.__get_items(json)
         # als er nog meer pages zijn, dan halen we die data erbij.
@@ -147,3 +147,34 @@ class SerieItems(object):
                     'apilink': serie['_links']['page']['href']
                 })
         return uzgitemlist
+
+class Channels(object):
+    def __init__(self, url):
+        self.npoHelpers = NpoHelpers()
+        channels = self.npoHelpers.get_json_data(url)
+        self.uzgitemlist = list()
+        self.uzgitemlist.extend (self.__get_channel_items(channels))
+
+    def __get_channel_items(self, channels):
+        uzgitemlist = list()
+        
+        for channel in channels:  
+            if(channel['type'] == "TvChannel"):
+            
+                image = NpoHelpers.get_image(channel);
+
+                uzgitemlist.append({
+                    'label': channel['name'],
+                    'art': {'thumb': image,
+                            'icon':  image,
+                            'fanart': image},
+                    'video': {
+                        'title': channel['name'],
+                        'plot': channel['name'] + 'LIVE TV',
+                        'mediatype': 'video'},
+                    'whatson_id': channel['liveStream']['id'],
+                    'apilink': channel['_links']['page']['href']
+                })
+        return uzgitemlist
+
+

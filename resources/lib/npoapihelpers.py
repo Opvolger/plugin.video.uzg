@@ -38,9 +38,10 @@ class NpoHelpers():
         return url
 
     def get_play_url(self, whatson_id):
+
         url = 'https://start-api.npo.nl/media/'+whatson_id+'/stream'
-        data_dash = self.get_json_data(
-            url, NpoHelpers.__get_video_request_data('dash'))
+        data_dash = self.get_json_data(url, NpoHelpers.__get_video_request_data('dash'))
+
         if (data_dash['drm']):
             data_dash['license_key'] = data_dash['licenseServer'] + \
                 '|X-Custom-Data=' + data_dash['licenseToken'] + '|R{SSM}|'
@@ -54,7 +55,7 @@ class NpoHelpers():
         data = ToJsonObject()
         data.profile = profile
         data.options = ToJsonObject()
-        data.options.startOver = True
+        data.options.startOver = False #moet False zijn om alle live kanalen te kunnen starten.
         data.options.platform = 'npo'
         return data.toJSON().encode('utf-8')
 
@@ -70,7 +71,14 @@ class NpoHelpers():
             if (item['images']['grid.tile']['formats'].get('tv') is not None):
                 thumbnail = item['images']['grid.tile']['formats']['tv']['source']      
             if (item['images']['grid.tile']['formats'].get('tv-expanded') is not None):
-                thumbnail = item['images']['grid.tile']['formats']['tv-expanded']['source']                
+                thumbnail = item['images']['grid.tile']['formats']['tv-expanded']['source']  
+        #for channel images
+        if thumbnail == '' and item['images'] and item['images'].get('original') and item['images']['original']:
+            if (item['images']['original']['formats'].get('tv') is not None):
+                thumbnail = item['images']['original']['formats']['tv']['source']      
+            if (item['images']['original']['formats'].get('tv-expanded') is not None):
+                thumbnail = item['images']['original']['formats']['tv-expanded']['source']  
+        
         return thumbnail
 
     @staticmethod

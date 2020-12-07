@@ -1,5 +1,5 @@
 # Kodi Media Center language file
-# Addon Name: Uitzendinggemist(NPO)
+# Addon Name: NPO Start
 # Addon id: plugin.video.uzg
 # Addon Provider: Opvolger
 msgid ""
