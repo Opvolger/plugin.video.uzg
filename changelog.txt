@@ -1,4 +1,4 @@
-﻿﻿Version 3.6.0
+﻿﻿Version 3.6.1
 * rename to NPO Start
 * fix search function
 * added Live-streams
