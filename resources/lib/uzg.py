@@ -25,7 +25,7 @@ class Uzg:
 
     def getQueryPage(self, tekst):
         # default is page 1
-        return SerieItems('https://start-api.npo.nl/search?query=' + tekst).uzgitemlist
+        return SerieItems('https://start-api.npo.nl/search?query=' + tekst.replace(' ', '%20')).uzgitemlist
 
     def getAZPage(self, letter):
         # default is page 1
