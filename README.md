@@ -1,7 +1,7 @@
 plugin.video.uzg
 ================
 
-Uitzendinggemist NPO NED1, NED2, NED3
+NPO Start NPO NED1, NED2, NED3
 
 Voor eigen gebruik.
 

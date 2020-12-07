@@ -2,14 +2,13 @@
     resources.lib.uzg
     ~~~~~~~~~~~~~~~~~
 
-    An XBMC addon for watching Uitzendinggemist(NPO)
+    An XBMC addon for watching NPO Start
    
     :license: GPLv3, see LICENSE.txt for more details.
 
-    Uitzendinggemist (NPO) = Made by Bas Magre (Opvolger)    
+    NPO Start = Made by Bas Magre (Opvolger)    
 
 '''
-import xbmc
 
 from resources.lib.npoapihelpers import NpoHelpers
 from resources.lib.npoapiclasses import SerieItems, EpisodesItems, Channels

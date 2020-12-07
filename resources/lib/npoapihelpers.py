@@ -3,8 +3,6 @@ import re
 from resources.lib.jsonhelper import ToJsonObject
 import sys
 
-import xbmc
-
 if (sys.version_info[0] == 3):
     # For Python 3.0 and later
     from urllib.request import urlopen, Request
@@ -57,7 +55,7 @@ class NpoHelpers():
         data = ToJsonObject()
         data.profile = profile
         data.options = ToJsonObject()
-        data.options.startOver = False
+        data.options.startOver = False #moet False zijn om alle live kanalen te kunnen starten.
         data.options.platform = 'npo'
         return data.toJSON().encode('utf-8')
 

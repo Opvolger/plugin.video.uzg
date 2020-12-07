@@ -4,7 +4,6 @@ from resources.lib.zone import Zone
 from datetime import datetime
 import time
 
-import xbmc
 import json
 
 class EpisodesItems(object):

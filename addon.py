@@ -1,11 +1,11 @@
 '''
-    Uitzendinggemist(NPO)
+    NPO Start
     ~~~~~~~
 
     An XBMC addon for watching uzg 
     :license: GPLv3, see LICENSE.txt for more details.
 
-    Uitzendinggemist(NPO) / uzg = Made by Bas Magre (Opvolger)
+    NPO Start / uzg = Made by Bas Magre (Opvolger)
     
 '''
 import xbmcaddon
@@ -66,7 +66,7 @@ def setMediaView():
         pass
 
 def home_menu():
-    xbmcplugin.setPluginCategory(_handle, 'NPO start')
+    xbmcplugin.setPluginCategory(_handle, 'NPO Start')
     for category in ['Live kanalen','Zoeken', 'Letters']:
         list_item = xbmcgui.ListItem(label=category)
         url = get_url(action='letter', letter=category)
@@ -162,7 +162,7 @@ def add_video_items(videoitems):
     for video in videoitems:
         # weergave video's die kan direct onder een franchise zijn of vanaf een sub-level "seasons"
         list_item = xbmcgui.ListItem(label=video['label'])
-        list_item.setInfo('video', video['video'] )
+        list_item.setInfo('video', video['video'])
         list_item.setArt(video['art'])
         list_item.setProperty('IsPlayable', 'true')
         url = get_url(action='play', whatson_id=video['whatson_id'])
