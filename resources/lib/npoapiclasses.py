@@ -1,13 +1,14 @@
+import time
+import json
+
 from resources.lib.npoapihelpers import NpoHelpers
 from resources.lib.amsterdamzone import AmsterdamZone
 from resources.lib.zone import Zone
 from datetime import datetime
-import time
 
-import json
 
 class EpisodesItems(object):
-    def __init__(self, url = None, json = None):
+    def __init__(self, url=None, json=None):
         if url:
             self.npoHelpers = NpoHelpers()
             json = self.npoHelpers.get_json_data(url)
@@ -19,7 +20,7 @@ class EpisodesItems(object):
             self.episodes = self.__episodes(json['items'])
             if (json['_links'].get('next')):
                 self.linknext = json['_links']['next']['href']
-    
+
     def __episodes(self, items):
         # items of uit season of wel uit franchise (opbouw is gelijk)
         uzgitemlist = list()
@@ -54,23 +55,27 @@ class EpisodesItems(object):
     def get_episodes_info_and_items(self):
         return {'type': 'episodes',
                 'items': self.episodes,
-                'linknext': self.linknext}            
+                'linknext': self.linknext}
+
 
 class NpoEpisodesItem(object):
     def __init__(self, episode):
-        self.episode = episode # data
+        self.episode = episode  # data
         self.datetime = self.get_dateitem(self.episode['broadcastDate'])
 
     @staticmethod
     def get_dateitem(datumstring):
         try:
-            datetimevalue = datetime.strptime(datumstring, "%Y-%m-%dT%H:%M:%SZ")
+            datetimevalue = datetime.strptime(
+                datumstring, "%Y-%m-%dT%H:%M:%SZ")
         except TypeError:
-            datetimevalue = datetime( *(time.strptime(datumstring, "%Y-%m-%dT%H:%M:%SZ")[0:6]))
+            datetimevalue = datetime(
+                *(time.strptime(datumstring, "%Y-%m-%dT%H:%M:%SZ")[0:6]))
         UTC = Zone(+0, False, 'UTC')
-        datetimevalue = datetimevalue.replace(tzinfo=UTC) # UTC
+        datetimevalue = datetimevalue.replace(tzinfo=UTC)  # UTC
         # we hebben een datetime nodig om zomer/wintertijd te kunnen bepalen
-        datetimevalue = datetimevalue.astimezone(AmsterdamZone(datetimevalue))  # Amsterdam
+        datetimevalue = datetimevalue.astimezone(
+            AmsterdamZone(datetimevalue))  # Amsterdam
         return datetimevalue
 
     def get_art(self):
@@ -107,12 +112,14 @@ class NpoEpisodesItem(object):
                 'timestamp': self.__get_timestamp(),
                 'whatson_id': self.episode['id']}
 
+
 class SerieItems(object):
     def __init__(self, url):
         self.npoHelpers = NpoHelpers()
         json = self.npoHelpers.get_json_data(url)
         # hier staan de totaal aantal pagina's in.
-        self.page_count = (json['total'] // json['count']) + (json['total'] % json['count']) 
+        self.page_count = (json['total'] // json['count']
+                           ) + (json['total'] % json['count'])
         # we beginnen met de items uit de meegegeven url (page 1)
         self.uzgitemlist = self.__get_items(json)
         # als er nog meer pages zijn, dan halen we die data erbij.
@@ -123,7 +130,8 @@ class SerieItems(object):
                     url + '&page=' + str(page))
                 self.uzgitemlist.extend(self.__get_items(data))  # page 2 t/m x
         # sorteer alle items
-        self.uzgitemlist = sorted(self.uzgitemlist, key=lambda x: x['label'].upper(), reverse=False)
+        self.uzgitemlist = sorted(
+            self.uzgitemlist, key=lambda x: x['label'].upper(), reverse=False)
 
     def __get_items(self, json):
         uzgitemlist = list()
@@ -148,21 +156,30 @@ class SerieItems(object):
                 })
         return uzgitemlist
 
+
+class SeasonItems(object):
+    def __init__(self, options, series_id):
+        self.uzgitemlist = list()
+        for seasonfiler in options:
+            # url nu nog samengesteld, netter om uit api te halen?
+            url = 'https://start-api.npo.nl/media/series/' + series_id + '/episodes?seasonId=' + seasonfiler['value']
+            uzg_item = {'label': seasonfiler['display'], 'link': url}
+            self.uzgitemlist.append(uzg_item)
+
+
 class Channels(object):
     def __init__(self, url):
         self.npoHelpers = NpoHelpers()
         channels = self.npoHelpers.get_json_data(url)
         self.uzgitemlist = list()
-        self.uzgitemlist.extend (self.__get_channel_items(channels))
+        self.uzgitemlist.extend(self.__get_channel_items(channels))
 
     def __get_channel_items(self, channels):
         uzgitemlist = list()
-        
-        for channel in channels:  
-            if(channel['type'] == "TvChannel"):
-            
-                image = NpoHelpers.get_image(channel);
 
+        for channel in channels:
+            if(channel['type'] == "TvChannel"):
+                image = NpoHelpers.get_image(channel)
                 uzgitemlist.append({
                     'label': channel['name'],
                     'art': {'thumb': image,
@@ -176,5 +193,3 @@ class Channels(object):
                     'apilink': channel['_links']['page']['href']
                 })
         return uzgitemlist
-
-

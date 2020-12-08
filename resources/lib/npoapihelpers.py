@@ -1,7 +1,8 @@
 import json
 import re
-from resources.lib.jsonhelper import ToJsonObject
 import sys
+
+from resources.lib.jsonhelper import ToJsonObject
 
 if (sys.version_info[0] == 3):
     # For Python 3.0 and later
@@ -18,7 +19,8 @@ class NpoHelpers():
     def get_json_data(self, url, data=None):
         req = Request(url)
         req.add_header(
-            'User-Agent', 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0')
+            'User-Agent',
+            'Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36')
         req.add_header('Content-Type', 'application/json; charset=utf-8')
         req.add_header('ApiKey', '07896f1ee72645f68bc75581d7f00d54')
         response = urlopen(req, data)
@@ -40,7 +42,8 @@ class NpoHelpers():
     def get_play_url(self, whatson_id):
 
         url = 'https://start-api.npo.nl/media/'+whatson_id+'/stream'
-        data_dash = self.get_json_data(url, NpoHelpers.__get_video_request_data('dash'))
+        data_dash = self.get_json_data(
+            url, NpoHelpers.__get_video_request_data('dash'))
 
         if (data_dash['drm']):
             data_dash['license_key'] = data_dash['licenseServer'] + \
@@ -55,7 +58,8 @@ class NpoHelpers():
         data = ToJsonObject()
         data.profile = profile
         data.options = ToJsonObject()
-        data.options.startOver = False #moet False zijn om alle live kanalen te kunnen starten.
+        # moet False zijn om alle live kanalen te kunnen starten.
+        data.options.startOver = False
         data.options.platform = 'npo'
         return data.toJSON().encode('utf-8')
 
@@ -69,16 +73,16 @@ class NpoHelpers():
                 thumbnail = item['images']['chromecast.post-play']['formats']['tv']['source']
         if thumbnail == '' and item['images'] and item['images'].get('grid.tile') and item['images']['grid.tile']:
             if (item['images']['grid.tile']['formats'].get('tv') is not None):
-                thumbnail = item['images']['grid.tile']['formats']['tv']['source']      
+                thumbnail = item['images']['grid.tile']['formats']['tv']['source']
             if (item['images']['grid.tile']['formats'].get('tv-expanded') is not None):
-                thumbnail = item['images']['grid.tile']['formats']['tv-expanded']['source']  
-        #for channel images
+                thumbnail = item['images']['grid.tile']['formats']['tv-expanded']['source']
+        # for channel images
         if thumbnail == '' and item['images'] and item['images'].get('original') and item['images']['original']:
             if (item['images']['original']['formats'].get('tv') is not None):
-                thumbnail = item['images']['original']['formats']['tv']['source']      
+                thumbnail = item['images']['original']['formats']['tv']['source']
             if (item['images']['original']['formats'].get('tv-expanded') is not None):
-                thumbnail = item['images']['original']['formats']['tv-expanded']['source']  
-        
+                thumbnail = item['images']['original']['formats']['tv-expanded']['source']
+
         return thumbnail
 
     @staticmethod

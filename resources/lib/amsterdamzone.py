@@ -44,7 +44,6 @@ class AmsterdamZone(Zone):
         # Hier zal de zomer en wintertijd wel zijn afgeschaft :)
         Zone.__init__(self, +1, isdst, 'Europe/Amsterdam')
 
-
     def dateitem(self, datumstring):
         try:
             datetimevalue = datetime.strptime(datumstring, "%Y-%m-%d %H:%M:%S")

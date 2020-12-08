@@ -1,23 +1,21 @@
 '''
     resources.lib.uzg
     ~~~~~~~~~~~~~~~~~
-
     An XBMC addon for watching NPO Start
-   
     :license: GPLv3, see LICENSE.txt for more details.
-
-    NPO Start = Made by Bas Magre (Opvolger)    
+    NPO Start = Made by Bas Magre (Opvolger)
 
 '''
 
 from resources.lib.npoapihelpers import NpoHelpers
-from resources.lib.npoapiclasses import SerieItems, EpisodesItems, Channels
+from resources.lib.npoapiclasses import SerieItems, EpisodesItems, Channels, SeasonItems
+
 
 class Uzg:
     def __init__(self):
         self.npoHelpers = NpoHelpers()
 
-    #def getLivePage(self):
+    # def getLivePage(self):
     #    return LiveItems('https://start-api.npo.nl/page/live').uzgitemlist
 
     def getChannels(self):
@@ -54,25 +52,12 @@ class Uzg:
                     # we hebben een filter, we maken een season overzicht
                     # ['filter']['options'] bevat de seasons welke er zijn. (b.v. "2018", "2017" enz.)
                     # series_id = id van serie (b.v. "We zijn er bijna")
-                    return {'type': 'season',
-                            'items': self.__season(component['filter']['options'], series_id)}
+                    return {'type': 'season', 'items': SeasonItems(component['filter']['options'], series_id).uzgitemlist}
         # we hebben niks gevonden, dus stuur maar een lege lijst terug
         return EpisodesItems().get_episodes_info_and_items()
-
-    def __season(self, options, series_id):
-        # todo deze moet nog wat netter worden en verhuizen naar npoapiclasses.py
-        uzgitemlist = list()
-        for seasonfiler in options:
-            # url nu nog samengesteld, netter om uit api te halen.
-            url = 'https://start-api.npo.nl/media/series/' + \
-                series_id + '/episodes?seasonId=' + seasonfiler['value']
-            uzgitem = {'label': seasonfiler['display'], 'link': url}
-            uzgitemlist.append(uzgitem)
-        return uzgitemlist
 
     def get_play_url(self, whatson_id):
         return self.npoHelpers.get_play_url(whatson_id)
 
     def get_ondertitel(self, whatson_id):
         return self.npoHelpers.get_subtitles(whatson_id)
-
