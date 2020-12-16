@@ -55,6 +55,8 @@ class NpoHelpers():
 
     @staticmethod
     def __get_video_request_data(profile):
+        # https://github.com/RandomIntermition/k4y108837s/blob/30dc07ee017978dafbe77ad651a9cf0a9cfc267d/HAX/18.CocoJoe/plugin.video.catchuptvandmore/resources/lib/channels/nl/npo.py
+        # 'https://start-player.npo.nl/video/%s/streams?profile=dash-widevine&quality=npo&tokenId=%s&streamType=broadcast&mobile=0&ios=0&isChromecast=0'
         data = ToJsonObject()
         data.profile = profile
         data.options = ToJsonObject()
