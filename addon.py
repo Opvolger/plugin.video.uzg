@@ -194,7 +194,12 @@ def play_video(whatson_id):
         is_helper = inputstreamhelper.Helper(
             PROTOCOL, DRM)  # drm=stream_info['drm'])
         if is_helper.check_inputstream():
-            playitem.setProperty('inputstreamaddon', is_helper.inputstream_addon)
+            if (sys.version_info[0] == 3):
+                # Kodi 19
+                playitem.setProperty('inputstream','inputstream.adaptive')
+            else:
+                # Kodi 18
+                playitem.setProperty('inputstreamaddon', is_helper.inputstream_addon)
             playitem.setProperty('inputstream.adaptive.manifest_type', PROTOCOL)
             # stream_info['drm'])
             playitem.setProperty('inputstream.adaptive.license_type', DRM)
