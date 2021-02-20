@@ -19,8 +19,8 @@
     <summary lang="nl">NPO Start - Bekijk gratis videos van NPO Start (alleen met nederlands ip-adres)</summary>
     <description lang="en">Dutch NPO Start videos NED1 / NED2 / NED3 (only with a dutch ip-address)</description>
     <description lang="nl">NPO Start, videos van NED1 / NED2 / NED3 (werkt alleen met nederlands ip-adres)</description>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
   </extension>
-  <assets>
-    <icon>icon.png</icon>
-  </assets>
 </addon>
