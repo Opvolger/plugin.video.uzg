@@ -6,7 +6,7 @@
     <import addon="script.common.plugin.cache" version="2.6.1"/>
   </requires>
   <extension library="addon.py" point="xbmc.python.pluginsource">
-    <provides>video</provides>
+    <provides>audio video</provides>
   </extension>
   <extension point="xbmc.addon.metadata">
     <license>GNU GENERAL PUBLIC LICENSE. Version 3, June 2007</license>

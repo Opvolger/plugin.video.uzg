@@ -19,12 +19,12 @@ from resources.lib.uzg import Uzg
 if (sys.version_info[0] == 3):
     # For Python 3.0 and later
     from urllib.parse import urlencode
-    from urllib.parse import parse_qsl
+    from urllib.parse import parse_qs
     import storageserverdummy as StorageServer
 else:
     # Fall back to Python 2's urllib2
     from urllib import urlencode
-    from urlparse import parse_qsl
+    from urlparse import parse_qs
     try:
         import StorageServer
     except:
@@ -211,8 +211,8 @@ def play_video(whatson_id):
 
 
 def router(paramstring):
-    params = dict(parse_qsl(paramstring))
-    if params:
+    params = parse_qs(paramstring)
+    if 'action' in params:
         if params['action'] == 'letter':
             list_letter(params['letter'])
         elif params['action'] == 'keuze':
