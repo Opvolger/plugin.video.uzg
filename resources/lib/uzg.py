@@ -18,8 +18,9 @@ class Uzg:
     # def getLivePage(self):
     #    return LiveItems('https://start-api.npo.nl/page/live').uzgitemlist
 
-    def getChannels(self):
-        return Channels('https://start-api.npo.nl/channel').uzgitemlist
+    def getChannels(self, channel_type):
+        url = 'https://start-api.npo.nl/channel'
+        return Channels(url, channel_type).uzgitemlist
 
     def getQueryPage(self, tekst):
         # default is page 1

@@ -66,7 +66,7 @@ def setMediaView():
 
 def home_menu():
     xbmcplugin.setPluginCategory(_handle, 'NPO Start')
-    for category in ['Live kanalen', 'Zoeken', 'Letters']:
+    for category in ['Live TV', 'Live Radio', 'Zoeken', 'Letters']:
         list_item = xbmcgui.ListItem(label=category)
         url = get_url(action='keuze', keuze=category)
         is_folder = True
@@ -78,8 +78,11 @@ def list_keuze(keuze):
     xbmcplugin.setPluginCategory(_handle, keuze)
     xbmcplugin.setContent(_handle, 'videos')
 
-    if(keuze == 'Live kanalen'):
-        list_livestreams()
+    if(keuze == 'Live TV'):
+        list_livestreams('tv')
+
+    elif(keuze == 'Live Radio'):
+        list_livestreams('radio')
 
     elif (keuze == 'Zoeken'):
         dialog = xbmcgui.Dialog()
@@ -94,9 +97,9 @@ def list_keuze(keuze):
         list_overzicht()
 
 
-def list_livestreams():
+def list_livestreams(channel_type):
     videos = list()
-    videos = _cache.cacheFunction(uzg.getChannels)
+    videos = _cache.cacheFunction(uzg.getChannels, channel_type)
     if videos:
         add_video_items(videos)
 

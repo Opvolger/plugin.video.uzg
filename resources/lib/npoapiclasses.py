@@ -168,17 +168,24 @@ class SeasonItems(object):
 
 
 class Channels(object):
-    def __init__(self, url):
+    def __init__(self, url, ctype):
         self.npoHelpers = NpoHelpers()
         channels = self.npoHelpers.get_json_data(url)
         self.uzgitemlist = list()
-        self.uzgitemlist.extend(self.__get_channel_items(channels))
+        self.uzgitemlist.extend(self.__get_channel_items(channels, ctype))
 
-    def __get_channel_items(self, channels):
+    def __get_channel_items(self, channels, ctype):
         uzgitemlist = list()
 
+        if ctype == 'radio':
+            channel_type = 'RadioChannel'
+            mediatype = 'audio'
+        else:
+            channel_type = 'TvChannel'
+            mediatype = 'video'
+
         for channel in channels:
-            if(channel['type'] == "TvChannel"):
+            if(channel['type'] == channel_type):
                 image = NpoHelpers.get_image(channel)
                 uzgitemlist.append({
                     'label': channel['name'],
@@ -187,8 +194,8 @@ class Channels(object):
                             'fanart': image},
                     'video': {
                         'title': channel['name'],
-                        'plot': channel['name'] + 'LIVE TV',
-                        'mediatype': 'video'},
+                        'plot': channel['name'],
+                        'mediatype': mediatype},
                     'whatson_id': channel['liveStream']['id'],
                     'apilink': channel['_links']['page']['href']
                 })
