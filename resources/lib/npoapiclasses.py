@@ -179,7 +179,7 @@ class Channels(object):
 
         if ctype == 'radio':
             channel_type = 'RadioChannel'
-            mediatype = 'audio'
+            mediatype = 'music'
         else:
             channel_type = 'TvChannel'
             mediatype = 'video'
