@@ -41,6 +41,16 @@ class AmsterdamZone(Zone):
             isdst = True
         if self.dateitem('2022-03-27 02:00:00') < date.replace(tzinfo=None) < self.dateitem('2022-10-30 02:00:00'):
             isdst = True
+        if self.dateitem('2023-03-26 02:00:00') < date.replace(tzinfo=None) < self.dateitem('2023-10-29 02:00:00'):
+            isdst = True
+        if self.dateitem('2024-03-31 02:00:00') < date.replace(tzinfo=None) < self.dateitem('2024-10-27 02:00:00'):
+            isdst = True
+        if self.dateitem('2025-03-30 02:00:00') < date.replace(tzinfo=None) < self.dateitem('2025-10-26 02:00:00'):
+            isdst = True
+        if self.dateitem('2026-03-29 02:00:00') < date.replace(tzinfo=None) < self.dateitem('2026-10-25 02:00:00'):
+            isdst = True
+        if self.dateitem('2027-03-28 02:00:00') < date.replace(tzinfo=None) < self.dateitem('2027-10-31 02:00:00'):
+            isdst = True
         # Hier zal de zomer en wintertijd wel zijn afgeschaft :)
         Zone.__init__(self, +1, isdst, 'Europe/Amsterdam')
 
