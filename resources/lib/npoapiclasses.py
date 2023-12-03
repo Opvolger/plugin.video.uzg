@@ -17,17 +17,17 @@ class EpisodesItems(object):
         self.uzgitemlist = list()
         # als we json hebben, kunnen we items aanmaken
         if json:
-            self.episodes = self.__episodes(json['items'])
-            if (json['_links'].get('next')):
-                self.linknext = json['_links']['next']['href']
+            self.episodes = self.__episodes(json)
+            # if (json['_links'].get('next')):
+            #     self.linknext = json['_links']['next']['href']
 
     def __episodes(self, items):
         # items of uit season of wel uit franchise (opbouw is gelijk)
         uzgitemlist = list()
         for episode in items:
             # we hebben geen premium/plus account
-            if (episode['isOnlyOnNpoPlus'] == False):
-                uzgitemlist.append(NpoEpisodesItem(episode).get_item())
+            # if (episode['isOnlyOnNpoPlus'] == False):
+            uzgitemlist.append(NpoEpisodesItem(episode).get_item())
         show_time_in_label = False
         for item in uzgitemlist:
             for ref in uzgitemlist:
@@ -53,30 +53,36 @@ class EpisodesItems(object):
         return item
 
     def get_episodes_info_and_items(self):
-        return {'type': 'episodes',
-                'items': self.episodes,
-                'linknext': self.linknext}
+        return {
+            'type': 'episodes',
+            'items': self.episodes
+        }
 
 
 class NpoEpisodesItem(object):
     def __init__(self, episode):
         self.episode = episode  # data
-        self.datetime = self.get_dateitem(self.episode['broadcastDate'])
+        self.datetime = self.get_dateitem(self.episode['publishedDateTime'])
 
     @staticmethod
-    def get_dateitem(datumstring):
-        try:
-            datetimevalue = datetime.strptime(
-                datumstring, "%Y-%m-%dT%H:%M:%SZ")
-        except TypeError:
-            datetimevalue = datetime(
-                *(time.strptime(datumstring, "%Y-%m-%dT%H:%M:%SZ")[0:6]))
-        UTC = Zone(+0, False, 'UTC')
-        datetimevalue = datetimevalue.replace(tzinfo=UTC)  # UTC
+    def get_dateitem(timestamp):
+        # try:
+        dt= datetime.fromtimestamp(timestamp)
+        dt.astimezone(AmsterdamZone(dt))
+        # datetimevalue = dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+        
+        # except TypeError:
+        #     datetimevalue = datetime(
+        #         *(time.strptime(datumstring, "%Y-%m-%dT%H:%M:%SZ")[0:6]))
+        # UTC = Zone(+0, False, 'UTC')
+        # datetimevalue = datetimevalue.replace(tzinfo=UTC)  # UTC
         # we hebben een datetime nodig om zomer/wintertijd te kunnen bepalen
-        datetimevalue = datetimevalue.astimezone(
-            AmsterdamZone(datetimevalue))  # Amsterdam
-        return datetimevalue
+        # datetimevalue = datetimevalue.astimezone( AmsterdamZone(datetimevalue))  # Amsterdam
+
+        return dt
+    
+    def __get_timestamp(self):
+        return self.datetime.strftime("%H:%M:%S")
 
     def get_art(self):
         image = NpoHelpers.get_image(self.episode)
@@ -85,23 +91,28 @@ class NpoEpisodesItem(object):
                 'fanart': image}
 
     def __get_label(self):
-        return self.episode['episodeTitle']
+        return self.episode['title']
 
-    def __get_timestamp(self):
-        return self.datetime.strftime("%H:%M:%S")
+    
 
     def __get_video(self):
+        plot = "";
+        if(self.episode.get('synopsis')):
+          plot = self.episode['synopsis']['long']
+      
         return {
-            'title': self.episode['episodeTitle'],
+            'title': self.episode['title'],
             'premiered':  self.datetime.strftime("%Y-%m-%d"),
             'aired':  self.datetime.strftime("%Y-%m-%d"),
             'date': self.datetime.strftime("%d-%m-%Y"),
-            'plot': self.episode['descriptionLong'],
+            'plot': plot,
             'studio': NpoHelpers.get_studio(self.episode),
             'year': self.datetime.strftime("%Y"),
-            'duration': self.episode['duration'],
+            'duration': self.episode['durationInSeconds'],
             'genre': NpoHelpers.get_genres(self.episode),
-            'mediatype': 'video'}
+            'mediatype': 'video',
+            'link': "https://npo.nl/start/serie/{}/{}/{}/afspelen".format(self.episode['series']['slug'],  self.episode['season']['slug'],self.episode['slug'])
+            }
         # 'mediatype' is needed for skin to display info for this ListItem correctly.
         # https://codedocs.xyz/xbmc/xbmc/group__python__xbmcgui__listitem.html#ga0b71166869bda87ad744942888fb5f14
 
@@ -110,7 +121,8 @@ class NpoEpisodesItem(object):
                 'art': self.get_art(),
                 'video': self.__get_video(),
                 'timestamp': self.__get_timestamp(),
-                'whatson_id': self.episode['id']}
+                'whatson_id': self.episode['productId'],
+                }
 
 
 class SerieItems(object):
@@ -118,8 +130,9 @@ class SerieItems(object):
         self.npoHelpers = NpoHelpers()
         json = self.npoHelpers.get_json_data(url)
         # hier staan de totaal aantal pagina's in.
-        self.page_count = (json['total'] // json['count']
-                           ) + (json['total'] % json['count'])
+        self.page_count = json['pageCount'] 
+        # (json['total'] // json['count']) + (json['total'] % json['count'])
+        
         # we beginnen met de items uit de meegegeven url (page 1)
         self.uzgitemlist = self.__get_items(json)
         # als er nog meer pages zijn, dan halen we die data erbij.
@@ -139,31 +152,33 @@ class SerieItems(object):
         for serie in items:
             # alleen series (todo andere content)
             image = NpoHelpers.get_image(serie)
-            if (serie['type'] == 'series'):
-                uzgitemlist.append({
-                    'label': serie['title'],
-                    'art': {'thumb': image,
-                            'icon':  image,
-                            'fanart': image},
-                    'video': {
-                        'title': serie['title'],
-                        'plot': serie['description'],
-                        'studio': NpoHelpers.get_studio(serie),
-                        'genre': NpoHelpers.get_genres(serie),
-                        'mediatype': 'video'},
-                    'nebo_id': serie['id'],
-                    'apilink': serie['_links']['page']['href']
-                })
+            #if (serie['type'] == 'series'):
+            uzgitemlist.append({
+                'label': serie['title'],
+                'art': {'thumb': image,
+                        'icon':  image,
+                        'fanart': image},
+                'video': {
+                    'title': serie['title'],
+                    # 'plot': serie['description'],
+                    'studio': NpoHelpers.get_studio(serie),
+                    'genre': NpoHelpers.get_genres(serie),
+                    'mediatype': 'video'},
+                'guid': serie['guid'], 
+                # 'nebo_id': serie['id'],
+                'apilink': "https://npo.nl/start/api/domain/series-seasons?slug={}".format(serie['slug'])
+            #serie['_links']['page']['href']
+            })
         return uzgitemlist
 
 
 class SeasonItems(object):
-    def __init__(self, options, series_id):
+    def __init__(self, seasons):
         self.uzgitemlist = list()
-        for seasonfiler in options:
+        for season in seasons:
             # url nu nog samengesteld, netter om uit api te halen?
-            url = 'https://start-api.npo.nl/media/series/' + series_id + '/episodes?seasonId=' + seasonfiler['value']
-            uzg_item = {'label': seasonfiler['display'], 'link': url}
+            url = "https://npo.nl/start/api/domain/programs-by-season?guid={}".format(season['guid'] )
+            uzg_item = {'label': season['label'], 'link': url}
             self.uzgitemlist.append(uzg_item)
 
 
@@ -178,18 +193,21 @@ class Channels(object):
         uzgitemlist = list()
 
         for channel in channels:
-            if(channel['type'] == "TvChannel"):
-                image = NpoHelpers.get_image(channel)
-                uzgitemlist.append({
-                    'label': channel['name'],
-                    'art': {'thumb': image,
-                            'icon':  image,
-                            'fanart': image},
-                    'video': {
-                        'title': channel['name'],
-                        'plot': channel['name'] + 'LIVE TV',
-                        'mediatype': 'video'},
-                    'whatson_id': channel['liveStream']['id'],
-                    'apilink': channel['_links']['page']['href']
-                })
+            # if(channel['type'] == "TvChannel"):
+            image = None, # NpoHelpers.get_image(channel)
+            uzgitemlist.append({
+                'label': channel['title'],
+                'art': {'thumb': "",
+                        'icon':  "",
+                        'fanart': ""},
+                'video': {
+                    'title': channel['title'],
+                    'plot': channel['title'] + ' LIVE TV',
+                    'mediatype': 'video',
+                    'link':   "https://npo.nl/start/live/{}".format( channel['title']) 
+                },
+                'whatson_id': channel['externalId'],
+                    
+                # 'apilink': channel['_links']['page']['href']
+            })
         return uzgitemlist

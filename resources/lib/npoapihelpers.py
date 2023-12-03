@@ -1,8 +1,12 @@
+from calendar import c
+from email import header
+from imghdr import what
 import json
 import re
 import sys
+import xbmc
 
-
+from urllib.error import HTTPError, URLError
 from resources.lib.jsonhelper import ToJsonObject
 
 if (sys.version_info[0] == 3):
@@ -19,17 +23,51 @@ class NpoHelpers():
 
     def get_json_data(self, url, data=None, headers=None, add_headers=False):
         req = Request(url)
-        req.add_header(
-            'User-Agent',
-            'Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36')
+        req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36')
         req.add_header('Content-Type', 'application/json; charset=utf-8')
-        req.add_header('ApiKey', '07896f1ee72645f68bc75581d7f00d54')
+        # req.add_header('ApiKey', '07896f1ee72645f68bc75581d7f00d54')
         if (headers):
             for key in headers:
                 req.add_header(key, headers[key])
         response = urlopen(req, data)
         link = response.read()
         response.close()
+        if (add_headers):
+            response.headers.headers
+            if (sys.version_info[0] == 3):
+                response_headers = response.getheaders()
+            else:
+                response_headers = response.headers.headers
+            return json.loads(link), response_headers
+        return json.loads(link)
+    
+    def post_json_data(self, url, bodydata=None, headers=None, add_headers=False):
+        if(headers == None):
+          headers = {};
+        
+        headers['User-Agent'] = 'Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36'
+        headers['Content-Type'] = 'application/json; charset=utf-8'
+        
+        xbmc.log(msg='This is a test string.', level=xbmc.LOGDEBUG);
+        xbmc.log(msg=url, level=xbmc.LOGDEBUG);
+
+        req = Request(url, headers = headers or {},  data = bodydata, method='POST')
+     
+        try:
+          with urlopen(req) as response:
+              print(response.status)
+              link = response.read()
+
+        except HTTPError as error:
+            xbmc.log(msg=error.status + ": " + error.reason, level=xbmc.LOGERROR);  
+            print(error.status, error.reason)
+        except URLError as error:
+            xbmc.log(msg=error.status + ": " + error.reason, level=xbmc.LOGERROR);    
+            print(error.reason)
+        except TimeoutError:
+            xbmc.log(msg="Request timed out", level=xbmc.LOGERROR);    
+            print("Request timed out") 
+
         if (add_headers):
             response.headers.headers
             if (sys.version_info[0] == 3):
@@ -50,27 +88,52 @@ class NpoHelpers():
             return None
         return url
 
-    def get_play_url(self, whatson_id):
-        # video = self.get_stream_url(whatson_id)
-        # if (video['stream']['type'] == 'application/dash+xml'):
-        #     xcdata_value = video['stream']['keySystemOptions'][0]['options']['httpRequestHeaders']['x-custom-data']
-        #     license_url = video['stream']['keySystemOptions'][0]['options']['licenseUrl']
-        #     item = {
-        #         'url': video['stream']['src'],
-        #         'drm': True,
-        #         'license_key': license_url + '|Content-Type=&User-Agent=Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3041.0 Safari/537.36&x-custom-data=%s|R{SSM}|' % xcdata_value
-        #     }
-        #     return item
-        url = 'https://start-api.npo.nl/media/'+whatson_id+'/stream'
-        data_dash = self.get_json_data(
-            url, NpoHelpers.__get_video_request_data('dash'))
-        if (data_dash['drm']):
-            data_dash['license_key'] = data_dash['licenseServer'] + \
-                '|X-Custom-Data=' + data_dash['licenseToken'] + '|R{SSM}|'
-        else:
-            # als we geen DRM hebben, pak dan de hls profile. Deze werkt ook op Kodi met oude filmpjes b.v. 2011 POW_00398490 (We zijn er bijna)
-            return self.get_json_data(url, NpoHelpers.__get_video_request_data('hls'))
-        return data_dash
+    def get_player_auth_token(self, whatson_id):
+        url = 'https://npo.nl/start/api/domain/player-token'
+        obj = ToJsonObject();
+        obj.productId = whatson_id;
+        
+        objstring = obj.toJSON().encode('utf-8')
+        #obj = {'productId': whatson_id} # '{productId:' + whatson_id + '}' 
+        result = self.post_json_data(url, objstring)
+        return result['token']
+
+    def get_play_url(self, whatson_id, video_url):
+      
+        authtoken = self.get_player_auth_token(whatson_id)      
+
+        obj = ToJsonObject()
+
+        obj.profileName = "dash" 
+        obj.drmType = "widevine" 
+        obj.referrerUrl = video_url
+
+        play_object = self.get_json_data("https://prod.npoplayer.nl/stream-link", obj.toJSON().encode('utf-8'), {"Authorization": authtoken})
+
+
+        return play_object
+
+        # # video = self.get_stream_url(whatson_id)
+        # # if (video['stream']['type'] == 'application/dash+xml'):
+        # #     xcdata_value = video['stream']['keySystemOptions'][0]['options']['httpRequestHeaders']['x-custom-data']
+        # #     license_url = video['stream']['keySystemOptions'][0]['options']['licenseUrl']
+        # #     item = {
+        # #         'url': video['stream']['src'],
+        # #         'drm': True,
+        # #         'license_key': license_url + '|Content-Type=&User-Agent=Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3041.0 Safari/537.36&x-custom-data=%s|R{SSM}|' % xcdata_value
+        # #     }
+        # #     return item
+
+
+        # url = 'https://start-api.npo.nl/media/'+whatson_id+'/stream'
+        # data_dash = self.get_json_data(url, NpoHelpers.__get_video_request_data('dash'))
+        # if (data_dash['drm']):
+        #     data_dash['license_key'] = data_dash['licenseServer'] + \
+        #         '|X-Custom-Data=' + data_dash['licenseToken'] + '|R{SSM}|'
+        # else:
+        #     # als we geen DRM hebben, pak dan de hls profile. Deze werkt ook op Kodi met oude filmpjes b.v. 2011 POW_00398490 (We zijn er bijna)
+        #     return self.get_json_data(url, NpoHelpers.__get_video_request_data('hls'))
+        # return data_dash
 
     # werkt ook, maar met GEO blokking en omslachtig en kwaliteit is niet beter.
     def get_stream_url(self, whatson_id):
@@ -109,16 +172,19 @@ class NpoHelpers():
     @staticmethod
     def get_image(item):
         thumbnail = ''
-        if item['images'] and item['images'].get('chromecast.post-play') and item['images']['chromecast.post-play']:
-            if (item['images']['chromecast.post-play']['formats'].get('tv-expanded') is not None):
-                thumbnail = item['images']['chromecast.post-play']['formats']['tv-expanded']['source']
-            if thumbnail == '' and (item['images']['chromecast.post-play']['formats'].get('tv') is not None):
-                thumbnail = item['images']['chromecast.post-play']['formats']['tv']['source']
-        if thumbnail == '' and item['images'] and item['images'].get('grid.tile') and item['images']['grid.tile']:
-            if (item['images']['grid.tile']['formats'].get('tv') is not None):
-                thumbnail = item['images']['grid.tile']['formats']['tv']['source']
-            if (item['images']['grid.tile']['formats'].get('tv-expanded') is not None):
-                thumbnail = item['images']['grid.tile']['formats']['tv-expanded']['source']
+        if item['images']:
+            thumbnail = item['images'][0]['url']
+          
+        # if item['images'] and item['images'].get('chromecast.post-play') and item['images']['chromecast.post-play']:
+        #     if (item['images']['chromecast.post-play']['formats'].get('tv-expanded') is not None):
+        #         thumbnail = item['images']['chromecast.post-play']['formats']['tv-expanded']['source']
+        #     if thumbnail == '' and (item['images']['chromecast.post-play']['formats'].get('tv') is not None):
+        #         thumbnail = item['images']['chromecast.post-play']['formats']['tv']['source']
+        # if thumbnail == '' and item['images'] and item['images'].get('grid.tile') and item['images']['grid.tile']:
+        #     if (item['images']['grid.tile']['formats'].get('tv') is not None):
+        #         thumbnail = item['images']['grid.tile']['formats']['tv']['source']
+        #     if (item['images']['grid.tile']['formats'].get('tv-expanded') is not None):
+        #         thumbnail = item['images']['grid.tile']['formats']['tv-expanded']['source']
         # for channel images
         if thumbnail == '' and item['images'] and item['images'].get('original') and item['images']['original']:
             if (item['images']['original']['formats'].get('tv') is not None):
@@ -130,13 +196,17 @@ class NpoHelpers():
 
     @staticmethod
     def get_studio(item):
-        if item['broadcasters']:
-            return ', '.join(item['broadcasters'])
+        if item.get('broadcasters'):
+            broadcasters = [];  
+            for broadcaster in item['broadcasters']:
+                broadcasters.append(broadcaster['name'])  
+            return ', '.join(broadcasters)
         return ''
 
     @staticmethod
     def get_genres(item):
         genres = ''
+        #maybe also add secondary genres => in items is sometimes property "secondaries"
         if item['genres']:
-            genres = ', '.join(item['genres'][0]['terms'])
+            genres = ', '.join(item['genres'][0]['name'])
         return genres
