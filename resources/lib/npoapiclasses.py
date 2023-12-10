@@ -83,6 +83,14 @@ class AllItems(object):
                 )
             )
         return uzgitemlist
+    
+class CollectionItems(object):
+    def __init__(self, guid):
+        self.guid = guid
+
+    def getItems(self) -> list[AddonItems]:
+        url = 'https://npo.nl/start/api/domain/page-collection?guid={}'.format(self.guid)
+        return JsonToItems.getItems(NpoHelpers.getJsonData(url))
 
 class EpisodesOfSeasonItems(object):
     def __init__(self, guid):

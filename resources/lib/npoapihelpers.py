@@ -137,7 +137,8 @@ class NpoHelpers():
             if item['title']:
                 # hack for journaal
                 if item['title'] == "NOS Journaal":
-                    return '{} - {}'.format(item['title'],datetime.fromtimestamp(int(item['publishedDateTime'])).strftime("%H:%M"))
+                    if 'publishedDateTime' in item:
+                        return '{} - {}'.format(item['title'],datetime.fromtimestamp(int(item['publishedDateTime'])).strftime("%H:%M"))
                 return item['title']
         if 'label' in item:
             if item['label']:

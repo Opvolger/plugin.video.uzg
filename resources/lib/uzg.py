@@ -8,7 +8,7 @@
 '''
 
 from resources.lib.npoapihelpers import NpoHelpers
-from resources.lib.npoapiclasses import AddonItems, QueryItems, SeasonItems, Channels, SeasonItems, EpisodesOfSeasonItems, EpisodesOfSerieItems, AllItems
+from resources.lib.npoapiclasses import AddonItems, QueryItems, SeasonItems, Channels, SeasonItems, EpisodesOfSeasonItems, EpisodesOfSerieItems, AllItems, CollectionItems
 
 class Uzg:
     
@@ -35,8 +35,8 @@ class Uzg:
             return EpisodesOfSeasonItems(guid).getItems()
         elif action == 'episodesSerie':
             return EpisodesOfSerieItems(guid).getItems()
-        # elif action == 'collection':
-        #     return CollectionItems(guid).getItems()
+        elif action == 'collection':
+            return CollectionItems(guid).getItems()
         elif action == 'seasons':
             return SeasonItems(slug).getItems()
         return None
