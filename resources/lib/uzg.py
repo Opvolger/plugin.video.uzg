@@ -8,29 +8,35 @@
 '''
 
 from resources.lib.npoapihelpers import NpoHelpers
-from resources.lib.npoapiclasses import QueryItems, SeasonItems, Channels, SeasonItems, EpisodesOfSeasonItems, EpisodesOfSerieItems
-
+from resources.lib.npoapiclasses import AddonItems, QueryItems, SeasonItems, Channels, SeasonItems, EpisodesOfSeasonItems, EpisodesOfSerieItems, AllItems
 
 class Uzg:
-    def getChannels(self):
-        return Channels().getItems()
-
-    def getQueryPage(self, tekst):
-        return QueryItems('zoek', tekst).getItems()
-
-    def getEpisodesOfSeason(self, guid):
-        return EpisodesOfSeasonItems(guid).getItems()
-
-    def getEpisodesOfSerie(self, guid):
-        return EpisodesOfSerieItems(guid).getItems()
-
-    def getSeasons(self, slug):
-        return SeasonItems(slug).getItems()
     
-    def getPlayInfo(self, externalId):
+    @staticmethod
+    def getPlayInfo(externalId):
         token = NpoHelpers.getToken(externalId)
         info = NpoHelpers.getStream(token)
         licenseKey = None
         if "drmToken" in info["stream"]:
             licenseKey = NpoHelpers.getLicenseKey(info["stream"]["drmToken"])
         return info, licenseKey
+
+    @staticmethod
+    def getItems(action, guid = None, productId = None, slug = None, text = None) -> list[AddonItems]:
+        if action == 'Live kanalen':
+            return Channels().getItems()
+        elif action == 'Alle programmas':
+            return AllItems().getItems()
+        elif action == 'Zoeken':
+            if text:
+                return QueryItems(text).getItems()
+            return list()
+        elif action == 'episodesSeason':
+            return EpisodesOfSeasonItems(guid).getItems()
+        elif action == 'episodesSerie':
+            return EpisodesOfSerieItems(guid).getItems()
+        # elif action == 'collection':
+        #     return CollectionItems(guid).getItems()
+        elif action == 'seasons':
+            return SeasonItems(slug).getItems()
+        return None

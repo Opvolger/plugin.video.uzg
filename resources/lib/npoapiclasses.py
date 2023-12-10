@@ -69,6 +69,21 @@ class EpisodesOfSerieItems(object):
         url = 'https://npo.nl/start/api/domain/programs-by-series?seriesGuid={}&sort=-firstBroadcastDate'.format(self.guid)
         return JsonToItems.getItems(NpoHelpers.getJsonData(url))
 
+class AllItems(object):
+    def getItems(self) -> list[AddonItems]:
+        url = 'https://npo.nl/start/_next/data/9gPO_EpYVoXUgPbn57qRY/categorie/programmas.json?slug=programmas'
+        result = NpoHelpers.getJsonData(url)
+        uzgitemlist = list()
+        for collection in result['pageProps']['dehydratedState']['queries'][0]['state']['data']['collections']:
+            url = 'https://npo.nl/start/api/domain/page-collection?guid={}'.format(collection['guid'])
+            result = NpoHelpers.getJsonData(url)
+            uzgitemlist.append(AddonItems(
+                KodiInfo(result),
+                NpoInfo(collection['guid'],None,None)
+                )
+            )
+        return uzgitemlist
+
 class EpisodesOfSeasonItems(object):
     def __init__(self, guid):
         self.guid = guid
@@ -86,10 +101,8 @@ class SeasonItems(object):
         return JsonToItems.getItems(NpoHelpers.getJsonData(url))
     
 class QueryItems(object):
-    def __init__(self, type, tekst):
-        self.url = ''
-        if type == 'zoek':
-            self.url = 'https://npo.nl/start/api/domain/search-results?query={}&searchType=series&subscriptionType=anonymous'.format(tekst.replace(' ', '%20'))
+    def __init__(self, text):
+        self.url = 'https://npo.nl/start/api/domain/search-results?query={}&searchType=series&subscriptionType=anonymous'.format(text.replace(' ', '%20'))
         
 
     def getItems(self) -> list[AddonItems]:

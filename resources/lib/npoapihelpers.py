@@ -7,6 +7,15 @@ from urllib.request import urlopen, Request
 class NpoHelpers():
 
     @staticmethod
+    def getPlayInfo(externalId):
+        token = NpoHelpers.getToken(externalId)
+        info = NpoHelpers.getStream(token)
+        licenseKey = None
+        if "drmToken" in info["stream"]:
+            licenseKey = NpoHelpers.getLicenseKey(info["stream"]["drmToken"])
+        return info, licenseKey
+
+    @staticmethod
     def getJsonData(url):
         req = Request(url)
         req.add_header(
@@ -112,6 +121,8 @@ class NpoHelpers():
             # We have seasonKey go to the episodes view
             return 'episodesSeason'
         if 'type' in item:
+            if item['type'] == "SERIES":
+                return 'collection'
             if item['type'] == "timeless_series":
                 return 'seasons'
             if item['type'] == "timebound_daily":

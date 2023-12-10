@@ -46,58 +46,24 @@ def setMediaView():
 
 def homeMenu():
     xbmcplugin.setPluginCategory(_handle, 'NPO Start')
-    for category in ['Live kanalen', 'Zoeken']:
-    #for category in ['Live kanalen', 'Zoeken', 'Letters']:
+    # for category in ['Live kanalen', 'Zoeken']:
+    for category in ['Live kanalen', 'Zoeken', 'Alle programmas']:
         list_item = xbmcgui.ListItem(label=category)
-        url = getUrl(action='keuze', keuze=category)
+        url = getUrl(action=category, guid=None, productId=None, slug=None)
         is_folder = True
         xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
     xbmcplugin.endOfDirectory(_handle)
 
-def listSeasons(slug):
-    items = uzg.getSeasons(slug)
-    addItems(items)
-
-def listEpisodesofSerie(guid):
-    items = uzg.getEpisodesOfSerie(guid)
-    addItems(items)
-
-def listEpisodesofSeason(guid):
-    items = uzg.getEpisodesOfSeason(guid)
-    addItems(items)
-
-def listKeuze(keuze):
-    xbmcplugin.setPluginCategory(_handle, keuze)
-    xbmcplugin.setContent(_handle, 'videos')
-
-    if(keuze == 'Live kanalen'):
-        listLiveStreams()
-
-    elif (keuze == 'Zoeken'):
-        dialog = xbmcgui.Dialog()
-        franchises = list()
-        input_dialog = dialog.input(_addon.getLocalizedString(32004), type=xbmcgui.INPUT_ALPHANUM)
-        if input_dialog:
-            # als hij hier niet komt is hij geannuleerd of afgebroken
-            franchises = uzg.getQueryPage(input_dialog)
-        addItems(franchises)
-
-
-def listLiveStreams():
-    videos = list()
-    videos = uzg.getChannels()
-    if videos:
-        addItems(videos)
-
-    xbmcplugin.endOfDirectory(_handle)
-
-
-def addItems(addonitems: list[AddonItems]):
+def addItems(addonitems: list[AddonItems], action):
+    xbmcplugin.setPluginCategory(_handle, action)
     if addonitems:
         if addonitems[0].kodiInfo.isPlayable:
-            xbmcplugin.setContent(_handle, 'videos')
-            xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_DATE)
-            xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
+            # hack do not sort live-streams
+            if not addonitems[0].kodiInfo.label == 'NPO1':
+                xbmcplugin.setContent(_handle, 'videos')
+                xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_DATE)
+                xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
+                setMediaView()
         for addonitem in addonitems:
             # weergave video's die kan direct onder een franchise zijn of vanaf een sub-level "seasons"
             list_item = xbmcgui.ListItem(label=addonitem.kodiInfo.label)
@@ -107,12 +73,10 @@ def addItems(addonitems: list[AddonItems]):
                 list_item.setProperty('IsPlayable', 'true')
             url = getUrl(action=addonitem.kodiInfo.action, productId=addonitem.npoInfo.productId, guid=addonitem.npoInfo.guid, slug=addonitem.npoInfo.slug)
             xbmcplugin.addDirectoryItem(_handle, url, list_item, addonitem.kodiInfo.isFolder)        
-        # xbmcplugin.addSortMethod(
-        #     _handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
     xbmcplugin.endOfDirectory(_handle)
 
 def playVideo(productId):
-    stream_info, licenseKey = uzg.getPlayInfo(productId)
+    stream_info, licenseKey = Uzg.getPlayInfo(productId)
     playitem = xbmcgui.ListItem(path=stream_info["stream"]["streamURL"])
     # xbmc.log('playVideo - {}'.format(productId),level=xbmc.LOGERROR)
     is_helper = inputstreamhelper.Helper(PROTOCOL, DRM)
@@ -127,24 +91,25 @@ def playVideo(productId):
 def router(paramstring):
     params = dict(parse_qsl(paramstring))
     if params:
-        if params['action'] == 'keuze':
-            listKeuze(params['keuze'])
-        elif params['action'] == 'episodesSeason':
-            listEpisodesofSeason(params['guid'])
-            setMediaView()
-        elif params['action'] == 'episodesSerie':
-            listEpisodesofSerie(params['guid'])
-            setMediaView()
-        elif params['action'] == 'seasons':
-            listSeasons(params['slug'])
-        elif params['action'] == 'play':
+        text = None
+        if params['action'] == 'Zoeken':
+            dialog = xbmcgui.Dialog()
+            input_dialog = dialog.input(_addon.getLocalizedString(32004), type=xbmcgui.INPUT_ALPHANUM)
+            if input_dialog:
+                text = input_dialog
+        
+        if params['action'] == 'play':
             playVideo(params['productId'])
         else:
-            raise ValueError('Invalid paramstring: {0}!'.format(paramstring))
+            # action will give list of items from api
+            items = Uzg.getItems(params['action'], params['guid'], params['productId'], params['slug'], text)
+            if items:
+                addItems(items, params['action'])
+            else:
+                raise ValueError('Invalid paramstring: {0}!'.format(paramstring))
     else:
         homeMenu()
         setMediaView()
-
 
 if __name__ == '__main__':
     router(sys.argv[2][1:])
