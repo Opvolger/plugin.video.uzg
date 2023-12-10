@@ -1,4 +1,8 @@
-﻿﻿Version 3.6.1
+﻿﻿Version 4.0.0
+* New Api
+Special Thnx to ComputerBoer
+
+Version 3.6.1
 * rename to NPO Start
 * fix search function
 * added Live-streams
