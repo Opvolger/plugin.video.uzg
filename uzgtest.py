@@ -57,7 +57,8 @@ loopItems(Uzg.getItems('episodesSerie', guid='5328ea0b-beff-4c14-959e-675cc6eb82
 loopItems(Uzg.getItems('Alle programmas'))
 
 # https://npo.nl/start/api/domain/page-collection?guid=bcd8b931-c2df-4d53-9bcf-01faa4ac7050
-loopItems(Uzg.getItems('collection', guid='bcd8b931-c2df-4d53-9bcf-01faa4ac7050'))
+loopItems(Uzg.getItems('collection', guid='bcd8b931-c2df-4d53-9bcf-01faa4ac7050')) # SERIES
+loopItems(Uzg.getItems('collection', guid='9443ce0c-b219-4f29-ba55-a96aca95beae')) # PROGRAM
 
 
 # {

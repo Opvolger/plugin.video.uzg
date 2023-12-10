@@ -101,6 +101,8 @@ class NpoHelpers():
             return True
         if 'publishedDateTime' in item:
             return True
+        if 'durationInSeconds' in item:
+            return True
         return False
 
     @staticmethod
@@ -122,6 +124,10 @@ class NpoHelpers():
             return 'episodesSeason'
         if 'type' in item:
             if item['type'] == "SERIES":
+                return 'collection'
+            if item['type'] == "PROGRAM":
+                return 'collection'
+            if item['type'] == "DYNAMIC_PAGE":
                 return 'collection'
             if item['type'] == "timeless_series":
                 return 'seasons'

@@ -1,4 +1,5 @@
 from resources.lib.npoapihelpers import NpoHelpers
+from datetime import datetime
 
 class KodiInfo(object):
     def __init__(self, item, art = None) -> None:
@@ -46,19 +47,31 @@ class JsonToItems(object):
         if 'items' in json:
             items = json['items'] # nome times items are direct, sometimes in item
         for item in items:
-            productId = None
-            slug = None
-            if 'slug' in item:
-                slug = item['slug']
-            if 'productId' in item:
-                productId = item['productId']
-            if 'externalId' in item:
-                productId = item['externalId']
-            uzgitemlist.append(AddonItems(
-                KodiInfo(item),
-                NpoInfo(item['guid'],productId,slug)
+            addItem = True
+            if 'restrictions' in item:
+                for restriction in item['restrictions']:
+                    if restriction['subscriptionType'] == "free":
+                        if restriction['available']['from']:
+                            if restriction['available']['from'] <= int(datetime.now().timestamp()) <= restriction['available']['till']:
+                                addItem = True
+                            else:
+                                addItem = False
+                        else:
+                            addItem = True
+            if (addItem):
+                productId = None
+                slug = None
+                if 'slug' in item:
+                    slug = item['slug']
+                if 'productId' in item:
+                    productId = item['productId']
+                if 'externalId' in item:
+                    productId = item['externalId']
+                uzgitemlist.append(AddonItems(
+                    KodiInfo(item),
+                    NpoInfo(item['guid'],productId,slug)
+                    )
                 )
-            )
         return uzgitemlist
 
 class EpisodesOfSerieItems(object):
