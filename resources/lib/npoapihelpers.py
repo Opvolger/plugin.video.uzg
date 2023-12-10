@@ -1,142 +1,203 @@
 import json
-import re
-import sys
 
-
+from datetime import datetime
 from resources.lib.jsonhelper import ToJsonObject
-
-if (sys.version_info[0] == 3):
-    # For Python 3.0 and later
-    from urllib.request import urlopen, Request
-    from urllib.parse import urlencode
-else:
-    # Fall back to Python 2's urllib2
-    from urllib2 import urlopen, Request
-    from urllib import urlencode
-
+from urllib.request import urlopen, Request
 
 class NpoHelpers():
 
-    def get_json_data(self, url, data=None, headers=None, add_headers=False):
+    @staticmethod
+    def getPlayInfo(externalId):
+        token = NpoHelpers.getToken(externalId)
+        info = NpoHelpers.getStream(token)
+        licenseKey = None
+        if "drmToken" in info["stream"]:
+            licenseKey = NpoHelpers.getLicenseKey(info["stream"]["drmToken"])
+        return info, licenseKey
+
+    @staticmethod
+    def getJsonData(url):
         req = Request(url)
         req.add_header(
             'User-Agent',
-            'Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36')
+            'Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36')
         req.add_header('Content-Type', 'application/json; charset=utf-8')
-        req.add_header('ApiKey', '07896f1ee72645f68bc75581d7f00d54')
+        response = urlopen(req)
+        link = response.read()
+        response.close()
+        return json.loads(link)
+
+    @staticmethod
+    def getStream(token):
+        headers = {
+            'authority': 'prod.npoplayer.nl',
+            'accept': '*/*',
+            'accept-language': 'en,en-US;q=0.9,nl;q=0.8,nl-NL;q=0.7,en-NL;q=0.6',
+            'authorization': token,
+            'content-type': 'application/json',
+            'dnt': '1',
+            'origin': 'https://npo.nl',
+            'referer': 'https://npo.nl/',
+            'user-agent': 'Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        }
+
+        data = ToJsonObject()
+        data.profileName = 'dash'
+        data.drmType = 'widevine'
+        data.referrerUrl = 'https://npo.nl/start/live?channel=NPO3'
+        req = Request('https://prod.npoplayer.nl/stream-link')
         if (headers):
             for key in headers:
                 req.add_header(key, headers[key])
-        response = urlopen(req, data)
+        response = urlopen(req, data.toJSON().encode('utf-8'))
         link = response.read()
         response.close()
-        if (add_headers):
-            response.headers.headers
-            if (sys.version_info[0] == 3):
-                response_headers = response.getheaders()
-            else:
-                response_headers = response.headers.headers
-            return json.loads(link), response_headers
         return json.loads(link)
 
-    def get_subtitles(self, whatson_id):
-        url = 'https://rs.poms.omroep.nl/v1/api/subtitles/'+whatson_id+'/nl_NL/CAPTION.vtt'
-        # door deze controle geen ERROR in de logging van Kodi als er geen ondertitel bestaat
-        req = Request(url)
-        try:
-            response = urlopen(req)
-            response.close()
-        except:
-            return None
-        return url
-
-    def get_play_url(self, whatson_id):
-        # video = self.get_stream_url(whatson_id)
-        # if (video['stream']['type'] == 'application/dash+xml'):
-        #     xcdata_value = video['stream']['keySystemOptions'][0]['options']['httpRequestHeaders']['x-custom-data']
-        #     license_url = video['stream']['keySystemOptions'][0]['options']['licenseUrl']
-        #     item = {
-        #         'url': video['stream']['src'],
-        #         'drm': True,
-        #         'license_key': license_url + '|Content-Type=&User-Agent=Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3041.0 Safari/537.36&x-custom-data=%s|R{SSM}|' % xcdata_value
-        #     }
-        #     return item
-        url = 'https://start-api.npo.nl/media/'+whatson_id+'/stream'
-        data_dash = self.get_json_data(
-            url, NpoHelpers.__get_video_request_data('dash'))
-        if (data_dash['drm']):
-            data_dash['license_key'] = data_dash['licenseServer'] + \
-                '|X-Custom-Data=' + data_dash['licenseToken'] + '|R{SSM}|'
-        else:
-            # als we geen DRM hebben, pak dan de hls profile. Deze werkt ook op Kodi met oude filmpjes b.v. 2011 POW_00398490 (We zijn er bijna)
-            return self.get_json_data(url, NpoHelpers.__get_video_request_data('hls'))
-        return data_dash
-
-    # werkt ook, maar met GEO blokking en omslachtig en kwaliteit is niet beter.
-    def get_stream_url(self, whatson_id):
-        # https://github.com/RandomIntermition/k4y108837s/blob/30dc07ee017978dafbe77ad651a9cf0a9cfc267d/HAX/18.CocoJoe/plugin.video.catchuptvandmore/resources/lib/channels/nl/npo.py
-        headers = {'X-Requested-With': 'XMLHttpRequest'}
-        data, cookies = self.get_json_data("https://www.npostart.nl/api/token", headers=headers, add_headers=True)
-        for cookie in cookies:
-            if (sys.version_info[0] == 3):
-                if cookie[1].startswith("npo_session="):
-                    session_token = cookie[1]
-            else:
-                if cookie.startswith("Set-Cookie: npo_session="):
-                    session_token = cookie[12:].split('\r\n')[0]
-
-        api_token = data['token']        
-        payload = json.dumps({"_token": api_token}).encode('utf-8')
-
-        headers = { "Cookie": session_token }
-        
-        resp2 = self.get_json_data("https://www.npostart.nl/player/{0}".format(whatson_id), data=payload, headers=headers)
-        token_id = resp2['token']
-        # video uitvraag
-        video = self.get_json_data("https://start-player.npo.nl/video/{}/streams?profile=dash-widevine&quality=npo&tokenId={}&streamType=broadcast&mobile=0&ios=0&isChromecast=0".format(whatson_id, token_id))
-        return video
+    @staticmethod
+    def getLicenseKey(drmToken):
+        url = "https://npo-drm-gateway.samgcloud.nepworldwide.nl/authentication?custom_data={}".format(drmToken)
+        return "{}||R{{SSM}}|".format(url)
 
     @staticmethod
-    def __get_video_request_data(profile):
+    def getToken(externalId):
+
+        headers = {
+            'authority': 'npo.nl',
+            'accept': 'application/json, text/plain, */*',
+            'accept-language': 'en,en-US;q=0.9,nl;q=0.8,nl-NL;q=0.7,en-NL;q=0.6',
+            'content-type': 'application/json',
+            'user-agent': 'Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        }
+
         data = ToJsonObject()
-        data.profile = profile
-        data.options = ToJsonObject()
-        # moet False zijn om alle live kanalen te kunnen starten.
-        data.options.startOver = False
-        data.options.platform = 'npo'
-        return data.toJSON().encode('utf-8')
+        data.productId = externalId
+        req = Request('https://npo.nl/start/api/domain/player-token')
+        if (headers):
+            for key in headers:
+                req.add_header(key, headers[key])
+        response = urlopen(req, data.toJSON().encode('utf-8'))
+        link = response.read()
+        response.close()
+        return json.loads(link)['token']
+
 
     @staticmethod
-    def get_image(item):
+    def getImage(item):
         thumbnail = ''
-        if item['images'] and item['images'].get('chromecast.post-play') and item['images']['chromecast.post-play']:
-            if (item['images']['chromecast.post-play']['formats'].get('tv-expanded') is not None):
-                thumbnail = item['images']['chromecast.post-play']['formats']['tv-expanded']['source']
-            if thumbnail == '' and (item['images']['chromecast.post-play']['formats'].get('tv') is not None):
-                thumbnail = item['images']['chromecast.post-play']['formats']['tv']['source']
-        if thumbnail == '' and item['images'] and item['images'].get('grid.tile') and item['images']['grid.tile']:
-            if (item['images']['grid.tile']['formats'].get('tv') is not None):
-                thumbnail = item['images']['grid.tile']['formats']['tv']['source']
-            if (item['images']['grid.tile']['formats'].get('tv-expanded') is not None):
-                thumbnail = item['images']['grid.tile']['formats']['tv-expanded']['source']
-        # for channel images
-        if thumbnail == '' and item['images'] and item['images'].get('original') and item['images']['original']:
-            if (item['images']['original']['formats'].get('tv') is not None):
-                thumbnail = item['images']['original']['formats']['tv']['source']
-            if (item['images']['original']['formats'].get('tv-expanded') is not None):
-                thumbnail = item['images']['original']['formats']['tv-expanded']['source']
-
+        if 'images' in item:
+            if item['images']:
+                thumbnail = item['images'][0]['url']
         return thumbnail
 
+
     @staticmethod
-    def get_studio(item):
-        if item['broadcasters']:
-            return ', '.join(item['broadcasters'])
+    def isFolder(item):
+        return not NpoHelpers.isPlayable(item)
+
+    @staticmethod
+    def isPlayable(item):
+        if 'externalId' in item:
+            return True
+        if 'publishedDateTime' in item:
+            return True
+        return False
+
+    @staticmethod
+    def getPlot(item):
+        if 'synopsis' in item:
+            if item['synopsis']:
+                if 'long' in item['synopsis']:
+                    return item['synopsis']['long']
+                else:
+                    return item['synopsis']
         return ''
 
     @staticmethod
-    def get_genres(item):
-        genres = ''
-        if item['genres']:
-            genres = ', '.join(item['genres'][0]['terms'])
-        return genres
+    def getAction(item):
+        if NpoHelpers.isPlayable(item):
+            return 'play'
+        if 'seasonKey' in item:
+            # We have seasonKey go to the episodes view
+            return 'episodesSeason'
+        if 'type' in item:
+            if item['type'] == "SERIES":
+                return 'collection'
+            if item['type'] == "timeless_series":
+                return 'seasons'
+            if item['type'] == "timebound_daily":
+                return 'episodesSerie'
+            if item['type'] == "timebound_series":
+                return 'seasons'
+        return 'unknown'
+
+    @staticmethod
+    def getLabel(item):
+        if 'title' in item:
+            if item['title']:
+                # hack for journaal
+                if item['title'] == "NOS Journaal":
+                    if 'publishedDateTime' in item:
+                        return '{} - {}'.format(item['title'],datetime.fromtimestamp(int(item['publishedDateTime'])).strftime("%H:%M"))
+                return item['title']
+        if 'label' in item:
+            if item['label']:
+                return item['label']
+        if 'seasonKey' in item:
+            return 'Season {}'.format(item['seasonKey'])
+        print(item)
+        return '-?-'
+
+    @staticmethod
+    def getDuration(item):
+        if 'durationInSeconds' in item:
+            return item['durationInSeconds']
+        return ''
+
+    @staticmethod
+    def getDate(item):
+        if 'firstBroadcastDate' in item:
+            if item['firstBroadcastDate']:
+                return datetime.fromtimestamp(int(item['firstBroadcastDate'])).strftime("%d-%m-%Y")
+        return ''
+
+    @staticmethod
+    def getYear(item):
+        if 'firstBroadcastDate' in item:
+            if item['firstBroadcastDate']:
+                return datetime.fromtimestamp(int(item['firstBroadcastDate'])).strftime("%Y")
+        return ''
+    
+    @staticmethod
+    def getAired(item):
+        if 'publishedDateTime' in item:
+            if item['publishedDateTime']:
+                return datetime.fromtimestamp(int(item['publishedDateTime'])).strftime("%Y-%m-%d")
+        return ''
+
+    @staticmethod
+    def getPremiered(item):
+        if 'firstBroadcastDate' in item:
+            if item['firstBroadcastDate']:
+                return datetime.fromtimestamp(int(item['firstBroadcastDate'])).strftime("%Y-%m-%d")
+        return ''
+
+    @staticmethod
+    def getStudio(item):
+        broadcasters = list()
+        if 'broadcasters' in item:
+            if item['broadcasters']:
+                for broadcaster in item['broadcasters']:
+                    broadcasters.append(broadcaster['name'])
+            return ', '.join(broadcasters)
+        return ''
+
+    @staticmethod
+    def getGenres(item):
+        genres = list()
+        if 'genres' in item:
+            if item['genres']:
+                for genre in item['genres']:
+                    genres.append(genre['name'])
+            return ', '.join(genres)
+        return ''
