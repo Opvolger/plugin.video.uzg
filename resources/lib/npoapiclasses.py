@@ -1,5 +1,6 @@
 from resources.lib.npoapihelpers import NpoHelpers
 from datetime import datetime
+from typing import List
 
 class KodiInfo(object):
     def __init__(self, item, art = None) -> None:
@@ -42,22 +43,29 @@ class JsonToItems(object):
     @staticmethod
     def getItems(json):
         # TODO paging
-        uzgitemlist = list()
+        uzgitemlist: List[AddonItems] = []
         items = json # nome times items are direct, sometimes in item
         if 'items' in json:
             items = json['items'] # nome times items are direct, sometimes in item
         for item in items:
             addItem = True
+            restrictionPremium = False
+            restrictionFree = False
             if 'restrictions' in item:
-                for restriction in item['restrictions']:
+                for restriction in item['restrictions']: 
+                    if restriction['subscriptionType'] == "premium":
+                        restrictionPremium = True
                     if restriction['subscriptionType'] == "free":
+                        restrictionFree = True
                         if restriction['available']['from']:
-                            if restriction['available']['from'] <= int(datetime.now().timestamp()) <= restriction['available']['till']:
+                            now = int(datetime.now().timestamp())
+                            if restriction['available']['from'] <= now <= restriction['available']['till']:
                                 addItem = True
                             else:
                                 addItem = False
-                        else:
-                            addItem = True
+            if restrictionPremium and restrictionFree == False:
+                # only Premium members
+                addItem = False
             if (addItem):
                 productId = None
                 slug = None
@@ -75,18 +83,23 @@ class JsonToItems(object):
         return uzgitemlist
 
 class EpisodesOfSerieItems(object):
-    def __init__(self, guid):
-        self.guid = guid
-
-    def getItems(self) -> list[AddonItems]:
-        url = 'https://npo.nl/start/api/domain/programs-by-series?seriesGuid={}&sort=-firstBroadcastDate'.format(self.guid)
+    def getItems(self, guid) -> List[AddonItems]:
+        url = 'https://npo.nl/start/api/domain/programs-by-series?seriesGuid={}&sort=-firstBroadcastDate'.format(guid)
         return JsonToItems.getItems(NpoHelpers.getJsonData(url))
 
 class AllItems(object):
-    def getItems(self) -> list[AddonItems]:
-        url = 'https://npo.nl/start/_next/data/9gPO_EpYVoXUgPbn57qRY/categorie/programmas.json?slug=programmas'
+    def __init__(self):
+        self.buildId = None
+
+    def getBuildId(self):
+        if (self.buildId == None):
+            url = 'https://npo.nl/start/categorie/programmas'
+            self.buildId = NpoHelpers.getBuildId(url)
+        return self.buildId
+
+    def getItems(self, url) -> List[AddonItems]:
         result = NpoHelpers.getJsonData(url)
-        uzgitemlist = list()
+        uzgitemlist: List[AddonItems] = []
         for collection in result['pageProps']['dehydratedState']['queries'][0]['state']['data']['collections']:
             url = 'https://npo.nl/start/api/domain/page-collection?guid={}'.format(collection['guid'])
             result = NpoHelpers.getJsonData(url)
@@ -98,38 +111,26 @@ class AllItems(object):
         return uzgitemlist
     
 class CollectionItems(object):
-    def __init__(self, guid):
-        self.guid = guid
-
-    def getItems(self) -> list[AddonItems]:
-        url = 'https://npo.nl/start/api/domain/page-collection?guid={}'.format(self.guid)
+    def getItems(self, guid) -> List[AddonItems]:
+        url = 'https://npo.nl/start/api/domain/page-collection?guid={}'.format(guid)
         return JsonToItems.getItems(NpoHelpers.getJsonData(url))
 
 class EpisodesOfSeasonItems(object):
-    def __init__(self, guid):
-        self.guid = guid
-
-    def getItems(self) -> list[AddonItems]:
-        url = 'https://npo.nl/start/api/domain/programs-by-season?guid={}&sort=-firstBroadcastDate'.format(self.guid)
+    def getItems(self, guid) -> List[AddonItems]:
+        url = 'https://npo.nl/start/api/domain/programs-by-season?guid={}&sort=-firstBroadcastDate'.format(guid)
         return JsonToItems.getItems(NpoHelpers.getJsonData(url))
 
 class SeasonItems(object):
-    def __init__(self, slug):
-        self.slug = slug
-
-    def getItems(self) -> list[AddonItems]:
-        url = 'https://npo.nl/start/api/domain/series-seasons?slug={}'.format(self.slug)
+    def getItems(self, slug) -> List[AddonItems]:
+        url = 'https://npo.nl/start/api/domain/series-seasons?slug={}'.format(slug)
         return JsonToItems.getItems(NpoHelpers.getJsonData(url))
     
 class QueryItems(object):
-    def __init__(self, text):
-        self.url = 'https://npo.nl/start/api/domain/search-results?query={}&searchType=series&subscriptionType=anonymous'.format(text.replace(' ', '%20'))
-        
-
-    def getItems(self) -> list[AddonItems]:
-        return JsonToItems.getItems(NpoHelpers.getJsonData(self.url))
+    def getItems(self, text) -> List[AddonItems]:
+        url = 'https://npo.nl/start/api/domain/search-results?query={}&searchType=series&subscriptionType=anonymous'.format(text.replace(' ', '%20'))
+        return JsonToItems.getItems(NpoHelpers.getJsonData(url))
 
 class Channels(object):   
-    def getItems(self) -> list[AddonItems]:
+    def getItems(self) -> List[AddonItems]:
         url = 'https://npo.nl/start/api/domain/guide-channels'
         return JsonToItems.getItems(NpoHelpers.getJsonData(url))

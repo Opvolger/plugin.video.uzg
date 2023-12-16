@@ -9,9 +9,18 @@
 
 from resources.lib.npoapihelpers import NpoHelpers
 from resources.lib.npoapiclasses import AddonItems, QueryItems, SeasonItems, Channels, SeasonItems, EpisodesOfSeasonItems, EpisodesOfSerieItems, AllItems, CollectionItems
+from typing import List
 
 class Uzg:
-    
+    def __init__(self):
+        self.channels = Channels()
+        self.allItems = AllItems()
+        self.queryItems = QueryItems()
+        self.episodesOfSeasonItems = EpisodesOfSeasonItems()
+        self.episodesOfSerieItems = EpisodesOfSerieItems()
+        self.collectionItems = CollectionItems()
+        self.seasonItems = SeasonItems()
+
     @staticmethod
     def getPlayInfo(externalId):
         token = NpoHelpers.getToken(externalId)
@@ -21,22 +30,25 @@ class Uzg:
             licenseKey = NpoHelpers.getLicenseKey(info["stream"]["drmToken"])
         return info, licenseKey
 
-    @staticmethod
-    def getItems(action, guid = None, productId = None, slug = None, text = None) -> list[AddonItems]:
+    def getItems(self, action, guid = None, productId = None, slug = None, text = None) -> List[AddonItems]:
         if action == 'Live kanalen':
-            return Channels().getItems()
+            return self.channels.getItems()
         elif action == 'Alle programmas':
-            return AllItems().getItems()
+            buildId = self.allItems.getBuildId()
+            return self.allItems.getItems('https://npo.nl/start/_next/data/{}/categorie/programmas.json?slug=programmas'.format(buildId))
+        elif action == 'webcollectie':
+            buildId = self.allItems.getBuildId()
+            return self.allItems.getItems('https://npo.nl/start/_next/data/{}/collectie/{}.json?slug={}'.format(buildId, slug, slug))
         elif action == 'Zoeken':
             if text:
-                return QueryItems(text).getItems()
-            return list()
+                return self.queryItems.getItems(text)
+            return List()
         elif action == 'episodesSeason':
-            return EpisodesOfSeasonItems(guid).getItems()
+            return self.episodesOfSeasonItems.getItems(guid)
         elif action == 'episodesSerie':
-            return EpisodesOfSerieItems(guid).getItems()
+            return self.episodesOfSerieItems.getItems(guid)
         elif action == 'collection':
-            return CollectionItems(guid).getItems()
+            return self.collectionItems.getItems(guid)
         elif action == 'seasons':
-            return SeasonItems(slug).getItems()
+            return self.seasonItems.getItems(slug)
         return None

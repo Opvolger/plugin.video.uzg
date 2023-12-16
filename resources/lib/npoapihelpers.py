@@ -1,8 +1,9 @@
-import json
+import json, re
 
 from datetime import datetime
 from resources.lib.jsonhelper import ToJsonObject
 from urllib.request import urlopen, Request
+from typing import List
 
 class NpoHelpers():
 
@@ -14,6 +15,23 @@ class NpoHelpers():
         if "drmToken" in info["stream"]:
             licenseKey = NpoHelpers.getLicenseKey(info["stream"]["drmToken"])
         return info, licenseKey
+
+    @staticmethod
+    def getBuildId(url):
+        req = Request(url)
+        req.add_header(
+            'User-Agent',
+            'Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36')
+        req.add_header('Content-Type', 'application/json; charset=utf-8')
+        response = urlopen(req)
+        website = response.read()
+        response.close()
+
+        regex = r"buildId\":\"([A-z0-9]*)"
+
+        match = re.findall(regex, str(website))
+        if match:
+            return match[0]
 
     @staticmethod
     def getJsonData(url):
@@ -135,6 +153,11 @@ class NpoHelpers():
                 return 'episodesSerie'
             if item['type'] == "timebound_series":
                 return 'seasons'
+            if item['type'] == "umbrella_series":
+                return 'collection'
+            print(item['type'])
+        if 'slug' in item:
+            return 'webcollectie'
         return 'unknown'
 
     @staticmethod
@@ -190,7 +213,7 @@ class NpoHelpers():
 
     @staticmethod
     def getStudio(item):
-        broadcasters = list()
+        broadcasters: List[str] = []
         if 'broadcasters' in item:
             if item['broadcasters']:
                 for broadcaster in item['broadcasters']:
@@ -200,7 +223,7 @@ class NpoHelpers():
 
     @staticmethod
     def getGenres(item):
-        genres = list()
+        genres: List[str] = []
         if 'genres' in item:
             if item['genres']:
                 for genre in item['genres']:

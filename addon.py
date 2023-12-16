@@ -14,6 +14,7 @@ import sys
 
 from resources.lib.uzg import Uzg
 from resources.lib.npoapiclasses import AddonItems
+from typing import List
 
 from urllib.parse import urlencode
 from urllib.parse import parse_qsl
@@ -54,7 +55,7 @@ def homeMenu():
         xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
     xbmcplugin.endOfDirectory(_handle)
 
-def addItems(addonitems: list[AddonItems], action):
+def addItems(addonitems: List[AddonItems], action):
     xbmcplugin.setPluginCategory(_handle, action)
     if addonitems:
         if addonitems[0].kodiInfo.isPlayable:
@@ -102,7 +103,7 @@ def router(paramstring):
             playVideo(params['productId'])
         else:
             # action will give list of items from api
-            items = Uzg.getItems(params['action'], params['guid'], params['productId'], params['slug'], text)
+            items = uzg.getItems(params['action'], params['guid'], params['productId'], params['slug'], text)
             if items:
                 addItems(items, params['action'])
             else:

@@ -1,7 +1,9 @@
 from resources.lib.uzg import Uzg
 from resources.lib.npoapihelpers import NpoHelpers
 from resources.lib.npoapiclasses import AddonItems
+from typing import List
 
+uzg = Uzg()
 
 a = NpoHelpers.getToken('LI_NL3_4188107')
 
@@ -27,39 +29,40 @@ c = 3
 
 info, licenseKey = Uzg.getPlayInfo('VARA_101381121')
 
-def loopItems(items: list[AddonItems]):
+def loopItems(items: List[AddonItems]):
     for item in items:
         print(item.kodiInfo.label)
         print(item.kodiInfo.action)
         print(item.npoInfo.productId)
         print(item.npoInfo.guid)
+        print(item.npoInfo.slug)
         print(item.kodiInfo.isFolder)
         print(item.kodiInfo.isPlayable)
         print('---')
 
 
 # https://npo.nl/start/api/domain/guide-channels
-loopItems(Uzg.getItems('Live kanalen'))
+loopItems(uzg.getItems('Live kanalen'))
 
 # https://npo.nl/start/api/domain/search-results?query=bijna&searchType=series&subscriptionType=anonymous
-loopItems(Uzg.getItems('Zoeken', text="bijna"))
+loopItems(uzg.getItems('Zoeken', text="bijna"))
 
 # https://npo.nl/start/api/domain/series-seasons?slug=freeks-wilde-wereld
-loopItems(Uzg.getItems('seasons', slug="freeks-wilde-wereld"))
+loopItems(uzg.getItems('seasons', slug="freeks-wilde-wereld"))
 
 # https://npo.nl/start/api/domain/programs-by-season?guid=7e1d457a-ec0f-4c25-853d-2085e55567b7&sort=-firstBroadcastDate
-loopItems(Uzg.getItems('episodesSeason', guid='7e1d457a-ec0f-4c25-853d-2085e55567b7'))
+loopItems(uzg.getItems('episodesSeason', guid='7e1d457a-ec0f-4c25-853d-2085e55567b7'))
 
 # https://npo.nl/start/api/domain/programs-by-series?seriesGuid=5328ea0b-beff-4c14-959e-675cc6eb8261&sort=-firstBroadcastDate
-loopItems(Uzg.getItems('episodesSerie', guid='5328ea0b-beff-4c14-959e-675cc6eb8261'))
+loopItems(uzg.getItems('episodesSerie', guid='5328ea0b-beff-4c14-959e-675cc6eb8261'))
 
 # https://npo.nl/start/_next/data/9gPO_EpYVoXUgPbn57qRY/categorie/programmas.json?slug=programmas
-loopItems(Uzg.getItems('Alle programmas'))
+items = uzg.getItems('Alle programmas')
+loopItems(items)
 
-# https://npo.nl/start/api/domain/page-collection?guid=bcd8b931-c2df-4d53-9bcf-01faa4ac7050
-loopItems(Uzg.getItems('collection', guid='bcd8b931-c2df-4d53-9bcf-01faa4ac7050')) # SERIES
-loopItems(Uzg.getItems('collection', guid='9443ce0c-b219-4f29-ba55-a96aca95beae')) # PROGRAM
-
+for item in items:
+    loopItems(uzg.getItems(item.kodiInfo.action, guid=item.npoInfo.guid, slug=item.npoInfo.slug))
+    print('---')
 
 # {
 # "guid": "2042e1ee-0e79-4766-aea2-5b300d6839b2",
