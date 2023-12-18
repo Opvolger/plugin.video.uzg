@@ -57,12 +57,18 @@ class JsonToItems(object):
                         restrictionPremium = True
                     if restriction['subscriptionType'] == "free":
                         restrictionFree = True
+                        now = int(datetime.now().timestamp())
                         if restriction['available']['from']:
-                            now = int(datetime.now().timestamp())
+                            if restriction['available']['from'] < now:
+                                addItem = True
+                            else:
+                                addItem = False
+                        if restriction['available']['from'] and restriction['available']['till']:
                             if restriction['available']['from'] <= now <= restriction['available']['till']:
                                 addItem = True
                             else:
                                 addItem = False
+
             if restrictionPremium and restrictionFree == False:
                 # only Premium members
                 addItem = False

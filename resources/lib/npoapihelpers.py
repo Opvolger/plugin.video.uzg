@@ -154,7 +154,7 @@ class NpoHelpers():
             if item['type'] == "timebound_series":
                 return 'seasons'
             if item['type'] == "umbrella_series":
-                return 'collection'
+                return 'seasons'
             print(item['type'])
         if 'slug' in item:
             return 'webcollectie'
