@@ -1,4 +1,8 @@
-﻿﻿Version 4.0.2
+﻿﻿Version 4.0.3
+* Fix weergave afleveringen
+* Fix juiste weergave bij gernes
+
+Version 4.0.2
 * Alleen zien wat "Free" is maar nu beter
 * Fix wat overzichten
 * Fix website update
