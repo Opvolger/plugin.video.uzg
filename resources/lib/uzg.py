@@ -42,7 +42,7 @@ class Uzg:
         elif action == 'Zoeken':
             if text:
                 return self.queryItems.getItems(text)
-            return List()
+            return []
         elif action == 'episodesSeason':
             return self.episodesOfSeasonItems.getItems(guid)
         elif action == 'episodesSerie':
