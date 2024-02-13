@@ -22,3 +22,10 @@ Er was helaas geen addon voor NPO of RTLxl, deze heb ik dus maar zelf gemaakt.
 Ik kwam er achter dat meerdere mensen het zelfde probleem hadden dat ik had. Dus heb ik mijn addons maar online gezet.
 
 Geniet dus van de addons, als jouw smart tv ook niet meer mag werken.
+
+Create zip-file
+---------------
+
+```bash
+kodiversion="4.0.4" && cd .. && rm plugin.video.uzg-$kodiversion.zip -f &&  zip -r plugin.video.uzg-$kodiversion.zip plugin.video.uzg -x "*/\.*" -x "*.pyc" -x "*.pyo" -x plugin.video.uzg/**/__pycache__\* cd plugin.video.uzg
+```
