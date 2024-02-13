@@ -27,7 +27,7 @@ class NpoHelpers():
         website = response.read()
         response.close()
 
-        regex = r"buildId\":\"([A-z0-9]*)"
+        regex = r"buildId\":\"([A-z0-9_-]*)"
 
         match = re.findall(regex, str(website))
         if match:
@@ -88,13 +88,11 @@ class NpoHelpers():
             'user-agent': 'Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
         }
 
-        data = ToJsonObject()
-        data.productId = externalId
-        req = Request('https://npo.nl/start/api/domain/player-token')
+        req = Request('https://npo.nl/start/api/domain/player-token?productId={}'.format(externalId), method='GET')
         if (headers):
             for key in headers:
                 req.add_header(key, headers[key])
-        response = urlopen(req, data.toJSON().encode('utf-8'))
+        response = urlopen(req)
         link = response.read()
         response.close()
         return json.loads(link)['token']
