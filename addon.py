@@ -86,6 +86,7 @@ def playVideo(productId):
         playitem.setProperty('inputstream.adaptive.manifest_type', PROTOCOL)
         playitem.setProperty('inputstream.adaptive.license_type', DRM)
         if licenseKey:
+            # xbmc.log('licenseKey - {}'.format(licenseKey),level=xbmc.LOGINFO)
             playitem.setProperty('inputstream.adaptive.license_key', licenseKey)
         xbmcplugin.setResolvedUrl(_handle, True, listitem=playitem)
 

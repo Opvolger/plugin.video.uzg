@@ -1,4 +1,7 @@
-﻿﻿Version 4.0.4
+﻿﻿Version 4.0.5
+* Api changes query was nu searchQuery geworden Thnx @harmenkets
+
+Version 4.0.4
 * Api changes
 
 Version 4.0.3
