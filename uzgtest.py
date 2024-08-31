@@ -44,7 +44,7 @@ def loopItems(items: List[AddonItems]):
 # https://npo.nl/start/api/domain/guide-channels
 loopItems(uzg.getItems('Live kanalen'))
 
-# https://npo.nl/start/api/domain/search-results?query=bijna&searchType=series&subscriptionType=anonymous
+# https://npo.nl/start/api/domain/search-results?searchQuery=bijna&searchType=series&subscriptionType=anonymous
 loopItems(uzg.getItems('Zoeken', text="bijna"))
 
 # https://npo.nl/start/api/domain/series-seasons?slug=freeks-wilde-wereld
@@ -71,11 +71,11 @@ for item in items:
 # },
 
 
-# https://npo.nl/start/api/domain/search-results?query=bijna&searchType=series&subscriptionType=premium&profileid=premium
-# https://npo.nl/start/api/domain/search-results?query=bijna&searchType=series&subscriptionType=anonymous
+# https://npo.nl/start/api/domain/search-results?searchQuery=bijna&searchType=series&subscriptionType=premium&profileid=premium
+# https://npo.nl/start/api/domain/search-results?searchQuery=bijna&searchType=series&subscriptionType=anonymous
 # https://npo.nl/start/api/domain/series-detail?slug=we-zijn-er-bijna
 # https://npo.nl/start/api/domain/series-seasons?slug=we-zijn-er-bijna&type=timeless_series
-# https://npo.nl/start/api/domain/search-results?query=bijna&searchType=series&subscriptionType=anonymous
+# https://npo.nl/start/api/domain/search-results?searchQuery=bijna&searchType=series&subscriptionType=anonymous
 # https://npo.nl/start/api/domain/programs-by-season?guid=7e1d457a-ec0f-4c25-853d-2085e55567b7&type=timeless_series
 # https://npo.nl/start/api/domain/series-seasons?slug=we-zijn-er-bijna&type=timeless_series
 # https://npo.nl/start/api/domain/programs-by-season?guid=d89e22bb-6983-49ac-8cad-faf539e5245e&type=timeless_series

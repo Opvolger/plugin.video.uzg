@@ -133,7 +133,7 @@ class SeasonItems(object):
     
 class QueryItems(object):
     def getItems(self, text) -> List[AddonItems]:
-        url = 'https://npo.nl/start/api/domain/search-results?query={}&searchType=series&subscriptionType=anonymous'.format(text.replace(' ', '%20'))
+        url = 'https://npo.nl/start/api/domain/search-results?searchQuery={}&searchType=series&subscriptionType=anonymous'.format(text.replace(' ', '%20'))
         return JsonToItems.getItems(NpoHelpers.getJsonData(url))
 
 class Channels(object):   
