@@ -27,5 +27,5 @@ Create zip-file
 ---------------
 
 ```bash
-kodiversion="4.0.5" && cd .. && rm plugin.video.uzg-$kodiversion.zip -f &&  zip -r plugin.video.uzg-$kodiversion.zip plugin.video.uzg -x "*/\.*" -x "*.pyc" -x "*.pyo" -x plugin.video.uzg/**/__pycache__\* && cd plugin.video.uzg
+kodiversion="4.0.6" && cd .. && rm plugin.video.uzg-$kodiversion.zip -f &&  zip -r plugin.video.uzg-$kodiversion.zip plugin.video.uzg -x "*/\.*" -x "*.pyc" -x "*.pyo" -x plugin.video.uzg/**/__pycache__\* && cd plugin.video.uzg
 ```

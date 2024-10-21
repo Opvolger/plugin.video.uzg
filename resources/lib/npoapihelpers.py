@@ -95,7 +95,7 @@ class NpoHelpers():
         response = urlopen(req)
         link = response.read()
         response.close()
-        return json.loads(link)['token']
+        return json.loads(link)['jwt']
 
 
     @staticmethod

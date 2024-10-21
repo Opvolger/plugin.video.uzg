@@ -1,4 +1,7 @@
-﻿﻿Version 4.0.5
+﻿﻿Version 4.0.6
+* Api changes token is now jwt
+
+Version 4.0.5
 * Api changes query was nu searchQuery geworden Thnx @harmenkets
 
 Version 4.0.4
