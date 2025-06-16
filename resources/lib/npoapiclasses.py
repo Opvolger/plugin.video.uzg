@@ -15,19 +15,7 @@ class KodiInfo(object):
             self.art = {'thumb': image,
                 'icon':  image,
                 'fanart': image}
-        self.video = {
-                        'aired': NpoHelpers.getAired(item),
-                        'duration': NpoHelpers.getDuration(item),
-                        'date': NpoHelpers.getDate(item),
-                        'genre': NpoHelpers.getGenres(item),
-                        'plot': NpoHelpers.getPlot(item),
-                        'premiered': NpoHelpers.getPremiered(item),
-                        'studio': NpoHelpers.getStudio(item),
-                        'title': NpoHelpers.getLabel(item),
-                        'year': NpoHelpers.getYear(item),
-                        'mediatype': 'video'
-                      }
-
+        self.videoItem = item
 class NpoInfo(object):
     def __init__(self, guid, productId, slug) -> None:
         self.guid = guid

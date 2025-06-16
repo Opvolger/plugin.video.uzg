@@ -129,7 +129,7 @@ class NpoHelpers():
                     return item['synopsis']['long']
                 else:
                     return item['synopsis']
-        return ''
+        return None
 
     @staticmethod
     def getAction(item):
@@ -176,55 +176,55 @@ class NpoHelpers():
         return '-?-'
 
     @staticmethod
-    def getDuration(item):
+    def getDuration(item) -> int:
         if 'durationInSeconds' in item:
-            return item['durationInSeconds']
-        return ''
+            return int(item['durationInSeconds'])
+        return None
 
     @staticmethod
-    def getDate(item):
+    def getDateAdded(item):
         if 'firstBroadcastDate' in item:
             if item['firstBroadcastDate']:
-                return datetime.fromtimestamp(int(item['firstBroadcastDate'])).strftime("%d-%m-%Y")
-        return ''
+                return datetime.fromtimestamp(int(item['firstBroadcastDate'])).strftime("%Y-%m-%d %H:%M:%s")
+        return None
 
     @staticmethod
-    def getYear(item):
+    def getYear(item) -> int:
         if 'firstBroadcastDate' in item:
             if item['firstBroadcastDate']:
-                return datetime.fromtimestamp(int(item['firstBroadcastDate'])).strftime("%Y")
-        return ''
+                return int(datetime.fromtimestamp(int(item['firstBroadcastDate'])).strftime("%Y"))
+        return None
     
     @staticmethod
-    def getAired(item):
+    def getFirstAired(item):
         if 'publishedDateTime' in item:
             if item['publishedDateTime']:
-                return datetime.fromtimestamp(int(item['publishedDateTime'])).strftime("%Y-%m-%d")
-        return ''
+                return datetime.fromtimestamp(int(item['publishedDateTime'])).strftime("%Y-%m-%d %H:%M:%s")
+        return None
 
     @staticmethod
     def getPremiered(item):
         if 'firstBroadcastDate' in item:
             if item['firstBroadcastDate']:
-                return datetime.fromtimestamp(int(item['firstBroadcastDate'])).strftime("%Y-%m-%d")
-        return ''
+                return datetime.fromtimestamp(int(item['firstBroadcastDate'])).strftime("%Y-%m-%d %H:%M:%s")
+        return None
 
     @staticmethod
-    def getStudio(item):
+    def getStudios(item) -> List[str]:
         broadcasters: List[str] = []
         if 'broadcasters' in item:
             if item['broadcasters']:
                 for broadcaster in item['broadcasters']:
                     broadcasters.append(broadcaster['name'])
-            return ', '.join(broadcasters)
-        return ''
+            return broadcasters
+        return None
 
     @staticmethod
-    def getGenres(item):
+    def getGenres(item) -> List[str]:
         genres: List[str] = []
         if 'genres' in item:
             if item['genres']:
                 for genre in item['genres']:
                     genres.append(genre['name'])
-            return ', '.join(genres)
-        return ''
+            return genres
+        return None

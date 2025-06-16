@@ -13,6 +13,7 @@ import inputstreamhelper
 import sys
 
 from resources.lib.uzg import Uzg
+from resources.lib.npoapihelpers import NpoHelpers
 from resources.lib.npoapiclasses import AddonItems
 from typing import List
 
@@ -68,7 +69,25 @@ def addItems(addonitems: List[AddonItems], action):
         for addonitem in addonitems:
             # weergave video's die kan direct onder een franchise zijn of vanaf een sub-level "seasons"
             list_item = xbmcgui.ListItem(label=addonitem.kodiInfo.label)
-            list_item.setInfo('video', addonitem.kodiInfo.video)
+            info_tag = list_item.getVideoInfoTag()
+            info_tag.setTitle(NpoHelpers.getLabel(addonitem.kodiInfo.videoItem))
+            if NpoHelpers.getPremiered(addonitem.kodiInfo.videoItem):
+                info_tag.setPremiered(NpoHelpers.getPremiered(addonitem.kodiInfo.videoItem))
+            if NpoHelpers.getFirstAired(addonitem.kodiInfo.videoItem):
+                info_tag.setFirstAired(NpoHelpers.getFirstAired(addonitem.kodiInfo.videoItem))
+            if NpoHelpers.getYear(addonitem.kodiInfo.videoItem):
+                info_tag.setYear(NpoHelpers.getYear(addonitem.kodiInfo.videoItem))
+            if NpoHelpers.getDuration(addonitem.kodiInfo.videoItem):
+                info_tag.setDuration(NpoHelpers.getDuration(addonitem.kodiInfo.videoItem))
+            if NpoHelpers.getDateAdded(addonitem.kodiInfo.videoItem):
+                info_tag.setDateAdded(NpoHelpers.getDateAdded(addonitem.kodiInfo.videoItem))
+            if NpoHelpers.getGenres(addonitem.kodiInfo.videoItem):
+                info_tag.setGenres(NpoHelpers.getGenres(addonitem.kodiInfo.videoItem))
+            if NpoHelpers.getPlot(addonitem.kodiInfo.videoItem):
+                info_tag.setPlot(NpoHelpers.getPlot(addonitem.kodiInfo.videoItem))
+            if NpoHelpers.getStudios(addonitem.kodiInfo.videoItem):
+                info_tag.setStudios(NpoHelpers.getStudios(addonitem.kodiInfo.videoItem))
+            list_item.setSubtitles(["https://cdn.npoplayer.nl/subtitles/nl/{0}.vtt".format(addonitem.npoInfo.productId)])
             list_item.setArt(addonitem.kodiInfo.art)
             if addonitem.kodiInfo.isPlayable:
                 list_item.setProperty('IsPlayable', 'true')
