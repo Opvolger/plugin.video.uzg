@@ -105,7 +105,7 @@ def router(paramstring):
         else:
             # action will give list of items from api
             items = uzg.getItems(params['action'], params['guid'], params['productId'], params['slug'], text)
-            if items:
+            if items is not None:
                 addItems(items, params['action'])
             else:
                 raise ValueError('Invalid paramstring: {0}!'.format(paramstring))
