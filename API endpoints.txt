@@ -1,14 +1,3 @@
 Relevant API Endpoints:
 
-Home: https://start-api.npo.nl/page/home
-Series API (Plural) : https://start-api.npo.nl/page/catalogue?page=2
-Series API (Singular): https://start-api.npo.nl/page/franchise/KN_1676589?page=1
-Episode API (Singular): https://start-api.npo.nl/page/episode/POW_03567086
-Episode media information: https://start-api.npo.nl/media/AT_2083054 (qualityOptions & SRT subtitles)
-Subtitles: http://tt888.omroep.nl/tt888/AT_2085754 (WebVTT)
-Episode Recommendations: https://start-api.npo.nl/media/AT_2083054/recommendations
-Search API: https://start-api.npo.nl/search?pageSize=7&searchQuery=keur&page=1
-Live API: https://start-api.npo.nl/page/live
-TV Guide API: https://start-api.npo.nl/channel
-EPG API: https://start-api.npo.nl/epg/2017-07-14?type=tv (tv / radio)
 Images: http://images.poms.omroep.nl/image/s295/c295x166/911848.jpg

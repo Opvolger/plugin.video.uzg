@@ -185,7 +185,7 @@ class NpoHelpers():
     def getDateAdded(item):
         if 'firstBroadcastDate' in item:
             if item['firstBroadcastDate']:
-                return datetime.fromtimestamp(int(item['firstBroadcastDate'])).strftime("%Y-%m-%d %H:%M:%s")
+                return datetime.fromtimestamp(int(item['firstBroadcastDate'])).strftime("%Y-%m-%d %H:%M:%S")
         return None
 
     @staticmethod
@@ -199,14 +199,14 @@ class NpoHelpers():
     def getFirstAired(item):
         if 'publishedDateTime' in item:
             if item['publishedDateTime']:
-                return datetime.fromtimestamp(int(item['publishedDateTime'])).strftime("%Y-%m-%d %H:%M:%s")
+                return datetime.fromtimestamp(int(item['publishedDateTime'])).strftime("%Y-%m-%d %H:%M:%S")
         return None
 
     @staticmethod
     def getPremiered(item):
         if 'firstBroadcastDate' in item:
             if item['firstBroadcastDate']:
-                return datetime.fromtimestamp(int(item['firstBroadcastDate'])).strftime("%Y-%m-%d %H:%M:%s")
+                return datetime.fromtimestamp(int(item['firstBroadcastDate'])).strftime("%Y-%m-%d %H:%M:%S")
         return None
 
     @staticmethod

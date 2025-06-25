@@ -1,4 +1,8 @@
-﻿﻿Version 4.1.1
+﻿﻿Version 4.1.2
+* Fix deprecated call, so Kodi 19 can work again?
+* add date on items
+
+Version 4.1.1
 * Fix deprecated warning
 * Add subtitle (again)
 

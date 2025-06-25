@@ -11,6 +11,7 @@ import xbmcgui
 import xbmcplugin
 import inputstreamhelper
 import sys
+import xbmc
 
 from resources.lib.uzg import Uzg
 from resources.lib.npoapihelpers import NpoHelpers
@@ -26,6 +27,7 @@ DRM = 'com.widevine.alpha'
 #DRM = 'widevine'
 PLUGIN_NAME = 'uzg'
 PLUGIN_ID = 'plugin.video.uzg'
+KODI_VERSION = int(xbmc.getInfoLabel("System.BuildVersion").split('.', 1)[0])
 
 uzg = Uzg()
 
@@ -56,6 +58,10 @@ def homeMenu():
         xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
     xbmcplugin.endOfDirectory(_handle)
 
+def executeFunctionWithValueIfValueIsNotNone(function, valueForFunction):
+    if valueForFunction:
+        function(valueForFunction)
+
 def addItems(addonitems: List[AddonItems], action):
     xbmcplugin.setPluginCategory(_handle, action)
     if addonitems:
@@ -67,26 +73,34 @@ def addItems(addonitems: List[AddonItems], action):
                 xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
                 setMediaView()
         for addonitem in addonitems:
-            # weergave video's die kan direct onder een franchise zijn of vanaf een sub-level "seasons"
             list_item = xbmcgui.ListItem(label=addonitem.kodiInfo.label)
-            info_tag = list_item.getVideoInfoTag()
-            info_tag.setTitle(NpoHelpers.getLabel(addonitem.kodiInfo.videoItem))
-            if NpoHelpers.getPremiered(addonitem.kodiInfo.videoItem):
-                info_tag.setPremiered(NpoHelpers.getPremiered(addonitem.kodiInfo.videoItem))
-            if NpoHelpers.getFirstAired(addonitem.kodiInfo.videoItem):
-                info_tag.setFirstAired(NpoHelpers.getFirstAired(addonitem.kodiInfo.videoItem))
-            if NpoHelpers.getYear(addonitem.kodiInfo.videoItem):
-                info_tag.setYear(NpoHelpers.getYear(addonitem.kodiInfo.videoItem))
-            if NpoHelpers.getDuration(addonitem.kodiInfo.videoItem):
-                info_tag.setDuration(NpoHelpers.getDuration(addonitem.kodiInfo.videoItem))
-            if NpoHelpers.getDateAdded(addonitem.kodiInfo.videoItem):
-                info_tag.setDateAdded(NpoHelpers.getDateAdded(addonitem.kodiInfo.videoItem))
-            if NpoHelpers.getGenres(addonitem.kodiInfo.videoItem):
-                info_tag.setGenres(NpoHelpers.getGenres(addonitem.kodiInfo.videoItem))
-            if NpoHelpers.getPlot(addonitem.kodiInfo.videoItem):
-                info_tag.setPlot(NpoHelpers.getPlot(addonitem.kodiInfo.videoItem))
-            if NpoHelpers.getStudios(addonitem.kodiInfo.videoItem):
-                info_tag.setStudios(NpoHelpers.getStudios(addonitem.kodiInfo.videoItem))
+            if KODI_VERSION == 19:
+                list_item.setInfo('video', 
+                                {
+                                    'duration': NpoHelpers.getDuration(addonitem.kodiInfo.videoItem),
+                                    'premiered':  NpoHelpers.getPremiered(addonitem.kodiInfo.videoItem),
+                                    'date': NpoHelpers.getLabel(addonitem.kodiInfo.videoItem),
+                                    'year': NpoHelpers.getYear(addonitem.kodiInfo.videoItem),
+                                    'plot': NpoHelpers.getPlot(addonitem.kodiInfo.videoItem),
+                                    'title': NpoHelpers.getLabel(addonitem.kodiInfo.videoItem),
+                                    'studio': NpoHelpers.getStudios(addonitem.kodiInfo.videoItem),
+                                    'aired': NpoHelpers.getFirstAired(addonitem.kodiInfo.videoItem),
+                                    'dateadded': NpoHelpers.getDateAdded(addonitem.kodiInfo.videoItem)
+                                })
+            else:
+                info_tag = list_item.getVideoInfoTag()
+                executeFunctionWithValueIfValueIsNotNone(info_tag.setTitle, NpoHelpers.getLabel(addonitem.kodiInfo.videoItem))
+                executeFunctionWithValueIfValueIsNotNone(info_tag.setDuration, NpoHelpers.getDuration(addonitem.kodiInfo.videoItem))
+                executeFunctionWithValueIfValueIsNotNone(info_tag.setPremiered, NpoHelpers.getPremiered(addonitem.kodiInfo.videoItem))
+                executeFunctionWithValueIfValueIsNotNone(info_tag.setFirstAired, NpoHelpers.getFirstAired(addonitem.kodiInfo.videoItem))
+                executeFunctionWithValueIfValueIsNotNone(info_tag.setYear, NpoHelpers.getYear(addonitem.kodiInfo.videoItem))
+                executeFunctionWithValueIfValueIsNotNone(info_tag.setDateAdded, NpoHelpers.getDateAdded(addonitem.kodiInfo.videoItem))
+                executeFunctionWithValueIfValueIsNotNone(info_tag.setGenres, NpoHelpers.getGenres(addonitem.kodiInfo.videoItem))
+                executeFunctionWithValueIfValueIsNotNone(info_tag.setGenres, NpoHelpers.getGenres(addonitem.kodiInfo.videoItem))
+                executeFunctionWithValueIfValueIsNotNone(info_tag.setPlot, NpoHelpers.getPlot(addonitem.kodiInfo.videoItem))
+                executeFunctionWithValueIfValueIsNotNone(info_tag.setStudios, NpoHelpers.getStudios(addonitem.kodiInfo.videoItem))
+                list_item.setDateTime(NpoHelpers.getFirstAired(addonitem.kodiInfo.videoItem))
+            # works for Kodi 19 and up
             list_item.setSubtitles(["https://cdn.npoplayer.nl/subtitles/nl/{0}.vtt".format(addonitem.npoInfo.productId)])
             list_item.setArt(addonitem.kodiInfo.art)
             if addonitem.kodiInfo.isPlayable:
