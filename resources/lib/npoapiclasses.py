@@ -95,7 +95,7 @@ class AllItems(object):
         result = NpoHelpers.getJsonData(url)
         uzgitemlist: List[AddonItems] = []
         for collection in result['pageProps']['dehydratedState']['queries'][0]['state']['data']['collections']:
-            url = 'https://npo.nl/start/api/domain/page-collection?collectionId={}'.format(collection['collectionId'])
+            url = 'https://npo.nl/start/api/domain/page-collection?collectionId={}&layoutType=PAGE'.format(collection['collectionId'])
             result = NpoHelpers.getJsonData(url)
             uzgitemlist.append(AddonItems(
                 KodiInfo(result),
@@ -106,7 +106,7 @@ class AllItems(object):
     
 class CollectionItems(object):
     def getItems(self, guid) -> List[AddonItems]:
-        url = 'https://npo.nl/start/api/domain/page-collection?collectionId={}'.format(guid)
+        url = 'https://npo.nl/start/api/domain/page-collection?collectionId={}&layoutType=PAGE'.format(guid)
         return JsonToItems.getItems(NpoHelpers.getJsonData(url))
 
 class EpisodesOfSeasonItems(object):
