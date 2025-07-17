@@ -116,8 +116,8 @@ def playVideo(productId):
     is_helper = inputstreamhelper.Helper(PROTOCOL, DRM)
     if is_helper.check_inputstream():
         playitem.setProperty('inputstream','inputstream.adaptive')
-        playitem.setProperty('inputstream.adaptive.manifest_type', PROTOCOL)
         playitem.setProperty('inputstream.adaptive.license_type', DRM)
+        playitem.setProperty('inputstream.adaptive.stream_selection_type', 'manual-osd')
         if licenseKey:
             # xbmc.log('licenseKey - {}'.format(licenseKey),level=xbmc.LOGINFO)
             playitem.setProperty('inputstream.adaptive.license_key', licenseKey)
