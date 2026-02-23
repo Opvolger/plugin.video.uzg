@@ -26,7 +26,7 @@ class Uzg:
         token = NpoHelpers.getToken(externalId)
         info = NpoHelpers.getStream(token)
         licenseKey = None
-        if "drmToken" in info["stream"]:
+        if info is not None and "drmToken" in info["stream"]:
             licenseKey = NpoHelpers.getLicenseKey(info["stream"]["drmToken"])
         return info, licenseKey
 
