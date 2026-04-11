@@ -48,7 +48,7 @@ class Uzg:
         elif action == 'episodesSerie':
             return self.episodesOfSerieItems.getItems(guid)
         elif action == 'collection':
-            return self.collectionItems.getItems(guid)
+            return self.collectionItems.getItems(guid, slug)
         elif action == 'seasons':
             return self.seasonItems.getItems(slug)
         return None
