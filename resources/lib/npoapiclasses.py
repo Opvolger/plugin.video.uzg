@@ -86,7 +86,7 @@ class AllItems(object):
         self.buildId = None
 
     def getBuildId(self):
-        if (self.buildId == None):
+        if self.buildId is None:
             url = 'https://npo.nl/start/categorie/programmas'
             self.buildId = NpoHelpers.getBuildId(url)
         return self.buildId
@@ -94,20 +94,19 @@ class AllItems(object):
     def getItems(self, url) -> List[AddonItems]:
         result = NpoHelpers.getJsonData(url)
         uzgitemlist: List[AddonItems] = []
-        for collection in result['pageProps']['dehydratedState']['queries'][0]['state']['data']['collections']:
-            url = 'https://npo.nl/start/api/domain/page-collection?collectionId={}&layoutType=PAGE'.format(collection['collectionId'])
-            result = NpoHelpers.getJsonData(url)
-            uzgitemlist.append(AddonItems(
-                KodiInfo(result),
-                NpoInfo(collection['collectionId'],None,None)
-                )
-            )
+        for collection in result['pageProps']['page']['collections']:
+            id_ = collection['collectionId']
+            type_ = collection['type']
+            uzgitemlist.append(AddonItems(KodiInfo(NpoHelpers.getJsonData(CollectionItems.getUrl(id_, type_))), NpoInfo(id_, None, type_)))
         return uzgitemlist
-    
+
 class CollectionItems(object):
-    def getItems(self, guid) -> List[AddonItems]:
-        url = 'https://npo.nl/start/api/domain/page-collection?collectionId={}&layoutType=PAGE'.format(guid)
-        return JsonToItems.getItems(NpoHelpers.getJsonData(url))
+    @staticmethod
+    def getUrl(id_, type_) -> str:
+        return 'https://npo.nl/start/api/domain/page-collection?collectionId={}&collectionType={}&includePremiumContent=false&layoutType=PAGE'.format(id_, type_)
+
+    def getItems(self, id_, type_) -> List[AddonItems]:
+        return JsonToItems.getItems(NpoHelpers.getJsonData(self.getUrl(id_, type_)))
 
 class EpisodesOfSeasonItems(object):
     def getItems(self, guid) -> List[AddonItems]:
