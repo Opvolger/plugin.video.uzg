@@ -21,15 +21,6 @@ class Uzg:
         self.collectionItems = CollectionItems()
         self.seasonItems = SeasonItems()
 
-    @staticmethod
-    def getPlayInfo(externalId):
-        token = NpoHelpers.getToken(externalId)
-        info = NpoHelpers.getStream(token)
-        licenseKey = None
-        if "drmToken" in info["stream"]:
-            licenseKey = NpoHelpers.getLicenseKey(info["stream"]["drmToken"])
-        return info, licenseKey
-
     def getItems(self, action, guid = None, productId = None, slug = None, text = None) -> List[AddonItems]:
         if action == 'Live kanalen':
             return self.channels.getItems()

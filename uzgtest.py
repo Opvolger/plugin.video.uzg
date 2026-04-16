@@ -15,7 +15,7 @@ print(b)
 
 c = 3
 
-info, licenseKey = Uzg.getPlayInfo('LI_NL3_4188107')
+info, licenseKey = NpoHelpers.getPlayInfo('LI_NL3_4188107')
 
 a = NpoHelpers.getToken('VARA_101381121')
 
@@ -27,7 +27,7 @@ print(b)
 
 c = 3
 
-info, licenseKey = Uzg.getPlayInfo('VARA_101381121')
+info, licenseKey = NpoHelpers.getPlayInfo('VARA_101381121')
 
 def loopItems(items: List[AddonItems]):
     for item in items:

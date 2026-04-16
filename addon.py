@@ -110,7 +110,7 @@ def addItems(addonitems: List[AddonItems], action):
     xbmcplugin.endOfDirectory(_handle)
 
 def playVideo(productId):
-    stream_info, licenseKey = Uzg.getPlayInfo(productId)
+    stream_info, licenseKey = NpoHelpers.getPlayInfo(productId)
     playitem = xbmcgui.ListItem(path=stream_info["stream"]["streamURL"])
     # xbmc.log('playVideo - {}'.format(productId),level=xbmc.LOGERROR)
     is_helper = inputstreamhelper.Helper(PROTOCOL, DRM)

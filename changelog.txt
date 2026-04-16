@@ -1,4 +1,8 @@
-﻿﻿Version 4.2.1
+﻿﻿Version 4.2.2
+* Correct Bump version
+* Delete duplicate code
+
+Version 4.2.1
 * Remove match, not working in python 3.8 (Windows Kodi)
 
 Version 4.2.0
