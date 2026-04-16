@@ -111,6 +111,8 @@ def addItems(addonitems: List[AddonItems], action):
 
 def playVideo(productId):
     stream_info, licenseKey = NpoHelpers.getPlayInfo(productId)
+    if stream_info is None:
+        return
     playitem = xbmcgui.ListItem(path=stream_info["stream"]["streamURL"])
     # xbmc.log('playVideo - {}'.format(productId),level=xbmc.LOGERROR)
     is_helper = inputstreamhelper.Helper(PROTOCOL, DRM)

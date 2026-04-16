@@ -1,8 +1,9 @@
-import json, re
+import json, re, xbmc, xbmcgui
 
 from datetime import datetime
 from resources.lib.jsonhelper import ToJsonObject
 from urllib.request import urlopen, Request
+from urllib.error import HTTPError
 from typing import List
 
 class NpoHelpers():
@@ -12,7 +13,7 @@ class NpoHelpers():
         token = NpoHelpers.getToken(externalId)
         info = NpoHelpers.getStream(token)
         licenseKey = None
-        if "drmToken" in info["stream"]:
+        if info is not None and "drmToken" in info["stream"]:
             licenseKey = NpoHelpers.getLicenseKey(info["stream"]["drmToken"])
         return info, licenseKey
 
@@ -67,10 +68,14 @@ class NpoHelpers():
         if (headers):
             for key in headers:
                 req.add_header(key, headers[key])
-        response = urlopen(req, data.toJSON().encode('utf-8'))
-        link = response.read()
-        response.close()
-        return json.loads(link)
+        try:
+            response = urlopen(req, data.toJSON().encode('utf-8'))
+            link = response.read()
+            response.close()
+            return json.loads(link)
+        except HTTPError as e:
+            if e.code == 450:
+                xbmcgui.Dialog().ok("Foutmelding", json.loads(e.read())["body"])
 
     @staticmethod
     def getLicenseKey(drmToken):
