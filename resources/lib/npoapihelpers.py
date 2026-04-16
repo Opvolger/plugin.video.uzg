@@ -139,15 +139,13 @@ class NpoHelpers():
             # We have seasonKey go to the episodes view
             return 'episodesSeason'
         if 'type' in item:
-            match item['type']:
-                case "PAGE" | "SERIES" | "PROGRAM" | "DYNAMIC_PAGE":
-                    return 'collection'
-                case "timebound_daily":
-                    return 'episodesSerie'
-                case "timeless_series" | "timebound_series" | "umbrella_series":
-                    return 'seasons'
-                case _:
-                    raise Exception("Onbekend type [{}] gevonden in item:\n{}".format(item['type'], item))
+            if item['type'] in ["PAGE", "SERIES", "PROGRAM", "DYNAMIC_PAGE"]:
+                return 'collection'
+            if item['type'] == "timebound_daily":
+                return 'episodesSerie'
+            if item['type'] in ["timeless_series", "timebound_series", "umbrella_series"]:
+                return 'seasons'
+            raise Exception("Onbekend type [{}] gevonden in item:\n{}".format(item['type'], item))
         if 'slug' in item:
             return 'webcollectie'
         return 'unknown'
