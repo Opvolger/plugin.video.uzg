@@ -1,27 +1,57 @@
-import json, re
+import base64, json, re
 
 from datetime import datetime
 from resources.lib.jsonhelper import ToJsonObject
 from urllib.request import urlopen, Request
+from urllib.parse import urlencode, quote
 from typing import List
 
 class NpoHelpers():
+
+    USER_AGENT = 'Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
 
     @staticmethod
     def getPlayInfo(externalId):
         token = NpoHelpers.getToken(externalId)
         info = NpoHelpers.getStream(token)
-        licenseKey = None
-        if "drmToken" in info["stream"]:
-            licenseKey = NpoHelpers.getLicenseKey(info["stream"]["drmToken"])
+        licenseKey = NpoHelpers.getLicenseKeyFromStream(info["stream"])
         return info, licenseKey
+
+    @staticmethod
+    def getLicenseKeyFromStream(stream):
+        # oude api: stream.drmToken, nieuwe api: stream.drm.{token,licenseUrl,certificateUrl,httpHeaders}
+        if stream.get("drmToken"):
+            return NpoHelpers.getLicenseKey(stream["drmToken"])
+        drm = stream.get("drm") or {}
+        if drm.get("token"):
+            return NpoHelpers.getLicenseKey(drm["token"])
+        if drm.get("licenseUrl"):
+            headers = {
+                'user-agent': NpoHelpers.USER_AGENT,
+                'origin': 'https://npo.nl',
+                'referer': 'https://npo.nl/',
+            }
+            headers.update(drm.get("httpHeaders") or {})
+            return "{}|{}|R{{SSM}}|".format(drm["licenseUrl"], urlencode(headers, quote_via=quote))
+        return None
+
+    @staticmethod
+    def getServerCertificate(stream):
+        # base64 server certificate voor inputstream.adaptive.server_certificate, None als er geen is
+        drm = stream.get("drm") or {}
+        if not drm.get("certificateUrl"):
+            return None
+        req = Request(drm["certificateUrl"])
+        req.add_header('User-Agent', NpoHelpers.USER_AGENT)
+        response = urlopen(req)
+        certificate = response.read()
+        response.close()
+        return base64.b64encode(certificate).decode('ascii')
 
     @staticmethod
     def getBuildId(url):
         req = Request(url)
-        req.add_header(
-            'User-Agent',
-            'Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36')
+        req.add_header('User-Agent', NpoHelpers.USER_AGENT)
         req.add_header('Content-Type', 'application/json; charset=utf-8')
         response = urlopen(req)
         website = response.read()
@@ -36,9 +66,7 @@ class NpoHelpers():
     @staticmethod
     def getJsonData(url):
         req = Request(url)
-        req.add_header(
-            'User-Agent',
-            'Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36')
+        req.add_header('User-Agent', NpoHelpers.USER_AGENT)
         req.add_header('Content-Type', 'application/json; charset=utf-8')
         response = urlopen(req)
         link = response.read()
@@ -56,7 +84,7 @@ class NpoHelpers():
             'dnt': '1',
             'origin': 'https://npo.nl',
             'referer': 'https://npo.nl/',
-            'user-agent': 'Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+            'user-agent': NpoHelpers.USER_AGENT,
         }
 
         data = ToJsonObject()
@@ -85,7 +113,7 @@ class NpoHelpers():
             'accept': 'application/json, text/plain, */*',
             'accept-language': 'en,en-US;q=0.9,nl;q=0.8,nl-NL;q=0.7,en-NL;q=0.6',
             'content-type': 'application/json',
-            'user-agent': 'Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+            'user-agent': NpoHelpers.USER_AGENT,
         }
 
         req = Request('https://npo.nl/start/api/domain/player-token?productId={}'.format(externalId), method='GET')

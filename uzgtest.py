@@ -2,6 +2,7 @@ from resources.lib.uzg import Uzg
 from resources.lib.npoapihelpers import NpoHelpers
 from resources.lib.npoapiclasses import AddonItems
 from typing import List
+from urllib.parse import quote
 
 uzg = Uzg()
 
@@ -17,7 +18,7 @@ c = 3
 
 info, licenseKey = NpoHelpers.getPlayInfo('LI_NL3_4188107')
 
-a = NpoHelpers.getToken('VARA_101381121')
+a = NpoHelpers.getToken('POW_05975335')
 
 print(a) 
 
@@ -27,7 +28,26 @@ print(b)
 
 c = 3
 
-info, licenseKey = NpoHelpers.getPlayInfo('VARA_101381121')
+info, licenseKey = NpoHelpers.getPlayInfo('POW_05975335')
+
+# DRM: nieuwe api (stream.drm.licenseUrl, ezdrm) en oude api (drmToken) moeten een license key opleveren
+for productId in ['AT_300013248', 'LI_NL3_4188107', 'POW_05975335']:
+    info, licenseKey = NpoHelpers.getPlayInfo(productId)
+    assert licenseKey, 'Geen license key voor {}: {}'.format(productId, info['stream'].get('drm'))
+    url, headers, challenge, response = licenseKey.split('|')
+    assert url.startswith('https://'), licenseKey
+    assert challenge == 'R{SSM}', licenseKey
+    print(productId, url.split('?')[0], headers, NpoHelpers.getServerCertificate(info['stream']))
+
+assert NpoHelpers.getLicenseKeyFromStream({'drmToken': 'abc'}) == \
+    'https://npo-drm-gateway.samgcloud.nepworldwide.nl/authentication?custom_data=abc||R{SSM}|'
+assert NpoHelpers.getLicenseKeyFromStream({'drm': {'token': 'abc', 'licenseUrl': None}}) == \
+    'https://npo-drm-gateway.samgcloud.nepworldwide.nl/authentication?custom_data=abc||R{SSM}|'
+assert NpoHelpers.getLicenseKeyFromStream({'drm': {'token': None, 'licenseUrl': 'https://lic/?a=1', 'httpHeaders': {'x-token': 'a b'}}}) == \
+    'https://lic/?a=1|user-agent={}&origin=https%3A%2F%2Fnpo.nl&referer=https%3A%2F%2Fnpo.nl%2F&x-token=a%20b|R{{SSM}}|'.format(quote(NpoHelpers.USER_AGENT, safe=''))
+assert NpoHelpers.getLicenseKeyFromStream({'drm': None}) is None
+assert NpoHelpers.getLicenseKeyFromStream({}) is None
+assert NpoHelpers.getServerCertificate({'drm': {'certificateUrl': None}}) is None
 
 def loopItems(items: List[AddonItems]):
     for item in items:

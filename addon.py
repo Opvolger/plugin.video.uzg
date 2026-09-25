@@ -121,6 +121,9 @@ def playVideo(productId):
         if licenseKey:
             # xbmc.log('licenseKey - {}'.format(licenseKey),level=xbmc.LOGINFO)
             playitem.setProperty('inputstream.adaptive.license_key', licenseKey)
+        serverCertificate = NpoHelpers.getServerCertificate(stream_info["stream"])
+        if serverCertificate:
+            playitem.setProperty('inputstream.adaptive.server_certificate', serverCertificate)
         xbmcplugin.setResolvedUrl(_handle, True, listitem=playitem)
 
 def router(paramstring):
