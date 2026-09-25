@@ -18,13 +18,13 @@ class NpoHelpers():
         return info, licenseKey
 
     @staticmethod
-    def getLicenseKeyFromStream(stream):
+    def getLicenseServer(stream):
+        # geeft (license url, url-encoded headers) terug, of None als de stream geen DRM heeft
         # oude api: stream.drmToken, nieuwe api: stream.drm.{token,licenseUrl,certificateUrl,httpHeaders}
-        if stream.get("drmToken"):
-            return NpoHelpers.getLicenseKey(stream["drmToken"])
         drm = stream.get("drm") or {}
-        if drm.get("token"):
-            return NpoHelpers.getLicenseKey(drm["token"])
+        drmToken = stream.get("drmToken") or drm.get("token")
+        if drmToken:
+            return NpoHelpers.getLicenseUrl(drmToken), ''
         if drm.get("licenseUrl"):
             headers = {
                 'user-agent': NpoHelpers.USER_AGENT,
@@ -32,7 +32,15 @@ class NpoHelpers():
                 'referer': 'https://npo.nl/',
             }
             headers.update(drm.get("httpHeaders") or {})
-            return "{}|{}|R{{SSM}}|".format(drm["licenseUrl"], urlencode(headers, quote_via=quote))
+            return drm["licenseUrl"], urlencode(headers, quote_via=quote)
+        return None
+
+    @staticmethod
+    def getLicenseKeyFromStream(stream):
+        # license key in het (oude) inputstream.adaptive.license_key formaat
+        licenseServer = NpoHelpers.getLicenseServer(stream)
+        if licenseServer:
+            return "{}|{}|R{{SSM}}|".format(*licenseServer)
         return None
 
     @staticmethod
@@ -101,9 +109,8 @@ class NpoHelpers():
         return json.loads(link)
 
     @staticmethod
-    def getLicenseKey(drmToken):
-        url = "https://npo-drm-gateway.samgcloud.nepworldwide.nl/authentication?custom_data={}".format(drmToken)
-        return "{}||R{{SSM}}|".format(url)
+    def getLicenseUrl(drmToken):
+        return "https://npo-drm-gateway.samgcloud.nepworldwide.nl/authentication?custom_data={}".format(drmToken)
 
     @staticmethod
     def getToken(externalId):

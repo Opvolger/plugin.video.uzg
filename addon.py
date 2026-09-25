@@ -12,6 +12,8 @@ import xbmcplugin
 import inputstreamhelper
 import sys
 import xbmc
+import json
+import re
 
 from resources.lib.uzg import Uzg
 from resources.lib.npoapihelpers import NpoHelpers
@@ -109,21 +111,42 @@ def addItems(addonitems: List[AddonItems], action):
             xbmcplugin.addDirectoryItem(_handle, url, list_item, addonitem.kodiInfo.isFolder)        
     xbmcplugin.endOfDirectory(_handle)
 
+def getVersion(version):
+    # '22.1.5' -> (22, 1, 5), zodat versies vergeleken kunnen worden
+    return tuple(int(part) for part in re.findall(r'\d+', version)[:3])
+
+def setDrmProperties(playitem, stream):
+    licenseServer = NpoHelpers.getLicenseServer(stream)
+    serverCertificate = NpoHelpers.getServerCertificate(stream)
+    isaVersion = getVersion(xbmcaddon.Addon('inputstream.adaptive').getAddonInfo('version'))
+    if isaVersion >= (22, 1, 5):
+        # https://github.com/xbmc/inputstream.adaptive/wiki/Integration-DRM
+        if licenseServer:
+            license = {'server_url': licenseServer[0], 'req_headers': licenseServer[1]}
+            if serverCertificate:
+                license['server_certificate'] = serverCertificate
+            playitem.setProperty('inputstream.adaptive.drm', json.dumps({DRM: {'license': license}}))
+    elif isaVersion >= (21, 5, 0) and not serverCertificate:
+        # drm_legacy kent geen server certificate, dan de oude properties gebruiken
+        if licenseServer:
+            playitem.setProperty('inputstream.adaptive.drm_legacy', '{}|{}|{}'.format(DRM, *licenseServer))
+    else:
+        playitem.setProperty('inputstream.adaptive.license_type', DRM)
+        licenseKey = NpoHelpers.getLicenseKeyFromStream(stream)
+        if licenseKey:
+            playitem.setProperty('inputstream.adaptive.license_key', licenseKey)
+        if serverCertificate:
+            playitem.setProperty('inputstream.adaptive.server_certificate', serverCertificate)
+
 def playVideo(productId):
-    stream_info, licenseKey = NpoHelpers.getPlayInfo(productId)
+    stream_info, _ = NpoHelpers.getPlayInfo(productId)
     playitem = xbmcgui.ListItem(path=stream_info["stream"]["streamURL"])
     # xbmc.log('playVideo - {}'.format(productId),level=xbmc.LOGERROR)
     is_helper = inputstreamhelper.Helper(PROTOCOL, DRM)
     if is_helper.check_inputstream():
         playitem.setProperty('inputstream','inputstream.adaptive')
-        playitem.setProperty('inputstream.adaptive.license_type', DRM)
         playitem.setProperty('inputstream.adaptive.stream_selection_type', 'manual-osd')
-        if licenseKey:
-            # xbmc.log('licenseKey - {}'.format(licenseKey),level=xbmc.LOGINFO)
-            playitem.setProperty('inputstream.adaptive.license_key', licenseKey)
-        serverCertificate = NpoHelpers.getServerCertificate(stream_info["stream"])
-        if serverCertificate:
-            playitem.setProperty('inputstream.adaptive.server_certificate', serverCertificate)
+        setDrmProperties(playitem, stream_info["stream"])
         xbmcplugin.setResolvedUrl(_handle, True, listitem=playitem)
 
 def router(paramstring):

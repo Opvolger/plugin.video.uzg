@@ -45,6 +45,11 @@ assert NpoHelpers.getLicenseKeyFromStream({'drm': {'token': 'abc', 'licenseUrl':
     'https://npo-drm-gateway.samgcloud.nepworldwide.nl/authentication?custom_data=abc||R{SSM}|'
 assert NpoHelpers.getLicenseKeyFromStream({'drm': {'token': None, 'licenseUrl': 'https://lic/?a=1', 'httpHeaders': {'x-token': 'a b'}}}) == \
     'https://lic/?a=1|user-agent={}&origin=https%3A%2F%2Fnpo.nl&referer=https%3A%2F%2Fnpo.nl%2F&x-token=a%20b|R{{SSM}}|'.format(quote(NpoHelpers.USER_AGENT, safe=''))
+assert NpoHelpers.getLicenseServer({'drm': {'token': None, 'licenseUrl': 'https://lic/?a=1', 'httpHeaders': None}}) == \
+    ('https://lic/?a=1', 'user-agent={}&origin=https%3A%2F%2Fnpo.nl&referer=https%3A%2F%2Fnpo.nl%2F'.format(quote(NpoHelpers.USER_AGENT, safe='')))
+assert NpoHelpers.getLicenseServer({'drmToken': 'abc'}) == \
+    ('https://npo-drm-gateway.samgcloud.nepworldwide.nl/authentication?custom_data=abc', '')
+assert NpoHelpers.getLicenseServer({'drm': None}) is None
 assert NpoHelpers.getLicenseKeyFromStream({'drm': None}) is None
 assert NpoHelpers.getLicenseKeyFromStream({}) is None
 assert NpoHelpers.getServerCertificate({'drm': {'certificateUrl': None}}) is None
