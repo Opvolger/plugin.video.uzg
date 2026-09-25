@@ -1,4 +1,7 @@
-﻿﻿Version 4.2.2
+﻿﻿Version 4.2.3
+* DRM update
+
+Version 4.2.2
 * Correct Bump version
 * Delete duplicate code
 
