@@ -1,4 +1,8 @@
-﻿﻿Version 4.2.3
+Version 4.2.4
+* Fix "Alle programmas" en collecties: npo.nl heeft geen buildId meer (#87). Thnx @jeroenij
+* Fix crash als durationInSeconds null is (#86). Thnx @jeroenij
+
+Version 4.2.3
 * DRM update
 
 Version 4.2.2

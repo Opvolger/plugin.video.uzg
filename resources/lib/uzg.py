@@ -25,11 +25,9 @@ class Uzg:
         if action == 'Live kanalen':
             return self.channels.getItems()
         elif action == 'Alle programmas':
-            buildId = self.allItems.getBuildId()
-            return self.allItems.getItems('https://npo.nl/start/_next/data/{}/categorie/programmas.json?slug=programmas'.format(buildId))
+            return self.allItems.getItems('programmas')
         elif action == 'webcollectie':
-            buildId = self.allItems.getBuildId()
-            return self.allItems.getItems('https://npo.nl/start/_next/data/{}/collectie/{}.json?slug={}'.format(buildId, slug, slug))
+            return self.allItems.getItems(slug)
         elif action == 'Zoeken':
             if text:
                 return self.queryItems.getItems(text)

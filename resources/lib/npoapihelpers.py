@@ -1,4 +1,4 @@
-import base64, json, re
+import base64, json
 
 from datetime import datetime
 from resources.lib.jsonhelper import ToJsonObject
@@ -55,21 +55,6 @@ class NpoHelpers():
         certificate = response.read()
         response.close()
         return base64.b64encode(certificate).decode('ascii')
-
-    @staticmethod
-    def getBuildId(url):
-        req = Request(url)
-        req.add_header('User-Agent', NpoHelpers.USER_AGENT)
-        req.add_header('Content-Type', 'application/json; charset=utf-8')
-        response = urlopen(req)
-        website = response.read()
-        response.close()
-
-        regex = r"buildId\":\"([A-z0-9_-]*)"
-
-        match = re.findall(regex, str(website))
-        if match:
-            return match[0]
 
     @staticmethod
     def getJsonData(url):
@@ -204,7 +189,7 @@ class NpoHelpers():
 
     @staticmethod
     def getDuration(item) -> int:
-        if 'durationInSeconds' in item:
+        if item.get('durationInSeconds') is not None:
             return int(item['durationInSeconds'])
         return None
 

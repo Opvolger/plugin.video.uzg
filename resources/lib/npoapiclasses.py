@@ -82,19 +82,13 @@ class EpisodesOfSerieItems(object):
         return JsonToItems.getItems(NpoHelpers.getJsonData(url))
 
 class AllItems(object):
-    def __init__(self):
-        self.buildId = None
+    @staticmethod
+    def getUrl(slug) -> str:
+        return 'https://npo.nl/start/api/domain/page-layout?layoutId={}&layoutType=PAGE&includePremiumContent=false'.format(slug)
 
-    def getBuildId(self):
-        if self.buildId is None:
-            url = 'https://npo.nl/start/categorie/programmas'
-            self.buildId = NpoHelpers.getBuildId(url)
-        return self.buildId
-
-    def getItems(self, url) -> List[AddonItems]:
-        result = NpoHelpers.getJsonData(url)
+    def getItems(self, slug) -> List[AddonItems]:
         uzgitemlist: List[AddonItems] = []
-        for collection in result['pageProps']['page']['collections']:
+        for collection in NpoHelpers.getJsonData(self.getUrl(slug))['collections']:
             id_ = collection['collectionId']
             type_ = collection['type']
             uzgitemlist.append(AddonItems(KodiInfo(NpoHelpers.getJsonData(CollectionItems.getUrl(id_, type_))), NpoInfo(id_, None, type_)))
